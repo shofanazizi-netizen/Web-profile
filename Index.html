@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warm Bento Portfolio & Bio Links</title>
+    <!-- Google Fonts: Plus Jakarta Sans & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        serif: ['"Playfair Display"', 'serif'],
+                    },
+                    colors: {
+                        peach: {
+                            50: '#fffbf7',
+                            100: '#faf0e6',
+                            200: '#f7e6dc',
+                            300: '#f4d5c3',
+                            400: '#eeb89e',
+                            500: '#e06d53',
+                            600: '#cb553c',
+                            700: '#a7402b',
+                        },
+                        warm: {
+                            card: 'rgba(255, 255, 255, 0.78)',
+                            cardHover: 'rgba(255, 255, 255, 0.92)',
+                            textPrimary: '#3D2B27',
+                            textMuted: '#8C7A76',
+                            border: 'rgba(224, 212, 204, 0.6)',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- React & Babel CDNs -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* Blogger Full-Width Override CSS */
+        #header-wrapper, #sidebar-wrapper, #footer-wrapper, .blog-feeds, .post-footer, .comments, #b-navbar, .navbar {
+            display: none !important;
+        }
+        body, html {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            min-height: 100vh;
+            background-color: #faf0e6 !important;
+            overflow-x: hidden;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 30px -5px rgba(180, 120, 100, 0.08);
+        }
+        .glass-card:hover {
+            box-shadow: 0 16px 35px -5px rgba(180, 120, 100, 0.12);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #faf0e6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e4d1c6;
+            border-radius: 99px;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-[#faf0e6] via-[#f7e6dc] to-[#f3dacb] text-[#3D2B27] font-sans min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // KONFIGURASI APLIKASI WEBAPP
+        // Ubah IS_PREVIEW ke false jika sudah di-deploy dan menyambung ke URL Apps Script
+        const IS_PREVIEW = false;
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwi4eYNDVWU0I2KAmP6xXiqDQmXpqxmJWtjwSHS4U6szf2iSdHFMaO1WpwLHvn8Myd5Iw/exec";
+
+        // DUMMY DATA UNTUK PREVIEW MODE
+        const INITIAL_PROFILE = {
+            name: "Vivian Greene",
+            role: "Senior UI/UX & Web Developer",
+            greeting: "Good morning.",
+            subgreeting: "Hari yang baru, mari buat karya yang bermakna ✨",
+            quote: "生活不是等待风暴过去, 而是学会在雨中起舞。",
+            quoteSub: "Life isn't about waiting for the storm to pass, it's about learning to dance in the rain.",
+            author: "Vivian Greene",
+            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+            location: "Jakarta / 26°C",
+            weather: "Cerah, Kelembapan 68%",
+            availableForHire: true,
+            email: "vivian.design@example.com",
+            whatsapp: "6281234567890",
+            github: "https://github.com",
+            linkedin: "https://linkedin.com",
+            cvUrl: "#"
+        };
+
+        const INITIAL_FOAM_LINKS = [
+            { id: 1, title: "Instagram Profile", category: "Social Media", icon: "instagram", url: "https://instagram.com", clicks: 342, description: "@vivian.design - Visual updates & daily stories" },
+            { id: 2, title: "Behance Portfolio", category: "Design Showcase", icon: "figma", url: "https://behance.net", clicks: 520, description: "Full UI/UX Case studies & Workflows" },
+            { id: 3, title: "GitHub Repositories", category: "Code", icon: "github", url: "https://github.com", clicks: 215, description: "Open source web projects & React components" },
+            { id: 4, title: "Book a Consultation", category: "Services", icon: "calendar", url: "https://calendly.com", clicks: 89, description: "Jadwalkan sesi diskusi proyek 1-on-1" },
+            { id: 5, title: "LinkedIn Network", category: "Social Media", icon: "linkedin", url: "https://linkedin.com", clicks: 198, description: "Pengalaman profesional & jaringan kerja" },
+            { id: 6, title: "Spotify Design Playlist", category: "Lifestyle", icon: "music", url: "https://spotify.com", clicks: 145, description: "Musik fokus saat merancang antarmuka" }
+        ];
+
+        const INITIAL_PROJECTS = [
+            {
+                id: 1,
+                title: "From Minimalism to Emotional Design",
+                subtitle: "界面正在回归真实体验",
+                category: "UI/UX Case Study",
+                description: "Eksplorasi desain antarmuka modern yang menggabungkan prinsip neumorphism lembut dengan fungsionalitas produk harian.",
+                image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
+                tags: ["React", "Tailwind", "Figma"],
+                demoUrl: "#",
+                githubUrl: "#"
+            },
+            {
+                id: 2,
+                title: "Next Week Travel Checklist App",
+                subtitle: "下周旅行计划清单",
+                category: "Mobile Web App",
+                description: "Aplikasi produktivitas interaktif dengan estetika hangat untuk manajemen itinerary dan inventaris perjalanan.",
+                image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80",
+                tags: ["Vue", "GAS", "PWA"],
+                demoUrl: "#",
+                githubUrl: "#"
+            }
+        ];
+
+        const INITIAL_MESSAGES = [
+            { id: 1, name: "Budi Santoso", email: "budi@agency.com", subject: "Penawaran Proyek UI", text: "Halo Vivian, saya tertarik berdiskusi untuk redesain web dashboard kami.", date: "2026-11-20" }
+        ];
+
+        function App() {
+            // State Utama
+            const [activeTab, setActiveTab] = React.useState('home'); // home, foam-links, projects, contact, admin
+            const [profile, setProfile] = React.useState(INITIAL_PROFILE);
+            const [foamLinks, setFoamLinks] = React.useState(INITIAL_FOAM_LINKS);
+            const [projects, setProjects] = React.useState(INITIAL_PROJECTS);
+            const [messages, setMessages] = React.useState(INITIAL_MESSAGES);
+            
+            // Search & Filter
+            const [searchQuery, setSearchQuery] = React.useState('');
+            const [selectedCategory, setSelectedCategory] = React.useState('All');
+            
+            // Audio Player Widget Simulation State
+            const [isPlayingAudio, setIsPlayingAudio] = React.useState(false);
+            
+            // Modal States
+            const [isAdminLoggedIn, setIsAdminLoggedIn] = React.useState(false);
+            const [showLoginModal, setShowLoginModal] = React.useState(false);
+            const [showAddLinkModal, setShowAddLinkModal] = React.useState(false);
+            const [showAddProjectModal, setShowAddProjectModal] = React.useState(false);
+
+            // Form inputs
+            const [loginForm, setLoginForm] = React.useState({ username: '', password: '' });
+            const [newLinkForm, setNewLinkForm] = React.useState({ title: '', category: 'Social Media', icon: 'link', url: '', description: '' });
+            const [newProjectForm, setNewProjectForm] = React.useState({ title: '', subtitle: '', category: 'UI/UX', description: '', image: '', tags: '' });
+            const [contactForm, setContactForm] = React.useState({ name: '', email: '', subject: '', message: '' });
+            const [contactSubmitted, setContactSubmitted] = React.useState(false);
+
+            // Initialize Lucide Icons
+            React.useEffect(() => {
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }, [activeTab, foamLinks, projects, isAdminLoggedIn]);
+
+            // Handlers
+            const handleLinkClick = (id, url) => {
+                setFoamLinks(prev => prev.map(item => item.id === id ? { ...item, clicks: item.clicks + 1 } : item));
+                window.open(url, '_blank');
+            };
+
+            const handleLoginSubmit = (e) => {
+                e.preventDefault();
+                if (loginForm.username === 'admin' && (loginForm.password === 'edudigital' || loginForm.password === 'admin2026')) {
+                    setIsAdminLoggedIn(true);
+                    setShowLoginModal(false);
+                    setActiveTab('admin');
+                    alert('Login Admin Berhasil!');
+                } else {
+                    alert('Username atau Password salah! (Default: admin / edudigital)');
+                }
+            };
+
+            const handleAddFoamLink = (e) => {
+                e.preventDefault();
+                const newEntry = {
+                    id: Date.now(),
+                    ...newLinkForm,
+                    clicks: 0
+                };
+                setFoamLinks([newEntry, ...foamLinks]);
+                setNewLinkForm({ title: '', category: 'Social Media', icon: 'link', url: '', description: '' });
+                setShowAddLinkModal(false);
+                alert('Foam Link Baru Berhasil Ditambahkan!');
+            };
+
+            const handleAddProject = (e) => {
+                e.preventDefault();
+                const newProj = {
+                    id: Date.now(),
+                    ...newProjectForm,
+                    tags: newProjectForm.tags.split(',').map(t => t.trim())
+                };
+                setProjects([newProj, ...projects]);
+                setNewProjectForm({ title: '', subtitle: '', category: 'UI/UX', description: '', image: '', tags: '' });
+                setShowAddProjectModal(false);
+                alert('Proyek Portofolio Berhasil Ditambahkan!');
+            };
+
+            const handleContactSubmit = (e) => {
+                e.preventDefault();
+                const newMessage = {
+                    id: Date.now(),
+                    ...contactForm,
+                    text: contactForm.message,
+                    date: new Date().toISOString().split('T')[0]
+                };
+                setMessages([newMessage, ...messages]);
+                setContactSubmitted(true);
+                setTimeout(() => setContactSubmitted(false), 4000);
+                setContactForm({ name: '', email: '', subject: '', message: '' });
+            };
+
+            // Filtered Links
+            const filteredLinks = foamLinks.filter(link => {
+                const matchesSearch = link.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                      link.description.toLowerCase().includes(searchQuery.toLowerCase());
+                const matchesCat = selectedCategory === 'All' || link.category === selectedCategory;
+                return matchesSearch && matchesCat;
+            });
+
+            return (
+                <div className="flex min-h-screen relative p-3 md:p-6 gap-4 md:gap-6 max-w-[1440px] mx-auto">
+                    
+                    {/* ----------------- 1. FLOATING SIDEBAR NAVIGATION (LEFT PILL) ----------------- */}
+                    <aside className="fixed left-3 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center gap-5 py-6 px-3 bg-white/80 backdrop-blur-xl border border-white/80 rounded-full shadow-lg shadow-peach-700/10 text-[#8C7A76]">
+                        {/* Profile Avatar */}
+                        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-peach-400 cursor-pointer shadow-sm" onClick={() => setActiveTab('home')}>
+                            <img src={profile.avatar} alt="Profile" className="w-full h-full object-cover" />
+                        </div>
+
+                        <div className="w-8 h-[1px] bg-peach-200 my-1"></div>
+
+                        {/* Navigation Items */}
+                        <button 
+                            onClick={() => setActiveTab('home')} 
+                            className={`p-3 rounded-full transition-all ${activeTab === 'home' ? 'bg-peach-500 text-white shadow-md shadow-peach-500/30' : 'hover:bg-peach-100 hover:text-peach-700'}`}
+                            title="Home / Bento Dashboard"
+                        >
+                            <i data-lucide="layout-grid" className="w-5 h-5"></i>
+                        </button>
+
+                        <button 
+                            onClick={() => setActiveTab('foam-links')} 
+                            className={`p-3 rounded-full transition-all relative ${activeTab === 'foam-links' ? 'bg-peach-500 text-white shadow-md shadow-peach-500/30' : 'hover:bg-peach-100 hover:text-peach-700'}`}
+                            title="Foam Links (Bio & Socials)"
+                        >
+                            <i data-lucide="link-2" className="w-5 h-5"></i>
+                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-peach-500 border-2 border-white rounded-full"></span>
+                        </button>
+
+                        <button 
+                            onClick={() => setActiveTab('projects')} 
+                            className={`p-3 rounded-full transition-all ${activeTab === 'projects' ? 'bg-peach-500 text-white shadow-md shadow-peach-500/30' : 'hover:bg-peach-100 hover:text-peach-700'}`}
+                            title="Portofolio Projects"
+                        >
+                            <i data-lucide="briefcase" className="w-5 h-5"></i>
+                        </button>
+
+                        <button 
+                            onClick={() => setActiveTab('contact')} 
+                            className={`p-3 rounded-full transition-all ${activeTab === 'contact' ? 'bg-peach-500 text-white shadow-md shadow-peach-500/30' : 'hover:bg-peach-100 hover:text-peach-700'}`}
+                            title="Contact Me"
+                        >
+                            <i data-lucide="mail" className="w-5 h-5"></i>
+                        </button>
+
+                        <div className="w-8 h-[1px] bg-peach-200 my-1"></div>
+
+                        {/* Admin / Settings */}
+                        <button 
+                            onClick={() => isAdminLoggedIn ? setActiveTab('admin') : setShowLoginModal(true)} 
+                            className={`p-3 rounded-full transition-all ${isAdminLoggedIn ? 'bg-emerald-500 text-white' : 'hover:bg-peach-100 hover:text-peach-700'}`}
+                            title={isAdminLoggedIn ? "Admin Dashboard" : "Admin Login"}
+                        >
+                            <i data-lucide={isAdminLoggedIn ? "user-check" : "lock"} className="w-5 h-5"></i>
+                        </button>
+                    </aside>
+
+                    {/* MOBILE NAVBAR BOTTOM PILL */}
+                    <nav className="md:hidden fixed bottom-3 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 py-2 px-5 bg-white/90 backdrop-blur-xl border border-white/90 rounded-full shadow-xl shadow-peach-900/10 text-[#8C7A76]">
+                        <button onClick={() => setActiveTab('home')} className={`p-2 rounded-full ${activeTab === 'home' ? 'bg-peach-500 text-white' : ''}`}>
+                            <i data-lucide="layout-grid" className="w-5 h-5"></i>
+                        </button>
+                        <button onClick={() => setActiveTab('foam-links')} className={`p-2 rounded-full ${activeTab === 'foam-links' ? 'bg-peach-500 text-white' : ''}`}>
+                            <i data-lucide="link-2" className="w-5 h-5"></i>
+                        </button>
+                        <button onClick={() => setActiveTab('projects')} className={`p-2 rounded-full ${activeTab === 'projects' ? 'bg-peach-500 text-white' : ''}`}>
+                            <i data-lucide="briefcase" className="w-5 h-5"></i>
+                        </button>
+                        <button onClick={() => setActiveTab('contact')} className={`p-2 rounded-full ${activeTab === 'contact' ? 'bg-peach-500 text-white' : ''}`}>
+                            <i data-lucide="mail" className="w-5 h-5"></i>
+                        </button>
+                        <button onClick={() => isAdminLoggedIn ? setActiveTab('admin') : setShowLoginModal(true)} className={`p-2 rounded-full ${isAdminLoggedIn ? 'bg-emerald-500 text-white' : ''}`}>
+                            <i data-lucide={isAdminLoggedIn ? "user-check" : "lock"} className="w-5 h-5"></i>
+                        </button>
+                    </nav>
+
+                    {/* ----------------- MAIN CONTENT WRAPPER ----------------- */}
+                    <main className="flex-1 md:ml-20 flex flex-col gap-6 pb-20 md:pb-6">
+                        
+                        {/* TOP HEADER SECTION */}
+                        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2">
+                            <div>
+                                <span className="text-xs font-semibold tracking-wider text-peach-600 uppercase bg-peach-100 px-3 py-1 rounded-full border border-peach-200">
+                                    8月7日 星期四 · Today's Portfolio
+                                </span>
+                                <h1 className="font-serif font-bold text-3xl md:text-5xl text-[#3D2B27] mt-2 tracking-tight">
+                                    {profile.greeting}
+                                </h1>
+                                <p className="text-sm text-[#8C7A76] mt-1 flex items-center gap-1.5">
+                                    <span>{profile.subgreeting}</span>
+                                    <span className="inline-block w-2 h-2 rounded-full bg-peach-500 animate-pulse"></span>
+                                </p>
+                            </div>
+
+                            {/* Weather & Quick Status Badge */}
+                            <div className="flex items-center gap-3">
+                                <div className="glass-card px-4 py-2.5 rounded-2xl flex items-center gap-3 text-xs">
+                                    <div className="w-8 h-8 rounded-full bg-orange-100 text-peach-600 flex items-center justify-center">
+                                        <i data-lucide="sun" className="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <div className="font-bold text-sm text-[#3D2B27]">26°C · {profile.location.split('/')[0]}</div>
+                                        <div className="text-[#8C7A76] text-[11px]">{profile.weather}</div>
+                                    </div>
+                                </div>
+
+                                <button 
+                                    onClick={() => setActiveTab('foam-links')}
+                                    className="p-3 bg-white/80 hover:bg-white rounded-2xl border border-white/80 text-[#3D2B27] shadow-sm transition-all"
+                                    title="Quick Search Links"
+                                >
+                                    <i data-lucide="search" className="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </header>
+
+                        {/* QUICK SEARCH INPUT BAR */}
+                        <div className="glass-card p-2 rounded-2xl flex items-center gap-3 border border-white/90">
+                            <i data-lucide="sparkles" className="w-5 h-5 text-peach-500 ml-3"></i>
+                            <input 
+                                type="text" 
+                                placeholder="Cari foam link, proyek, keahlian, atau media sosial..." 
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full bg-transparent border-none text-sm text-[#3D2B27] placeholder-[#a4938f] focus:outline-none"
+                            />
+                            {searchQuery && (
+                                <button onClick={() => setSearchQuery('')} className="p-1 hover:bg-peach-100 rounded-full mr-2">
+                                    <i data-lucide="x" className="w-4 h-4 text-[#8C7A76]"></i>
+                                </button>
+                            )}
+                            <button 
+                                onClick={() => setActiveTab('foam-links')} 
+                                className="bg-peach-500 hover:bg-peach-600 text-white p-2.5 rounded-xl flex items-center justify-center transition-all shadow-md shadow-peach-500/20"
+                            >
+                                <i data-lucide="arrow-right" className="w-4 h-4"></i>
+                            </button>
+                        </div>
+
+                        {/* ----------------- TAB 1: HOME (BENTO GRID DASHBOARD) ----------------- */}
+                        {activeTab === 'home' && (
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
+                                
+                                {/* 1. QUOTE & PHILOSOPHY CARD (4 cols) */}
+                                <div className="md:col-span-4 glass-card p-6 rounded-3xl flex flex-col justify-between relative overflow-hidden group">
+                                    <div className="absolute top-4 right-4 text-peach-200 text-6xl font-serif font-bold leading-none select-none">“</div>
+                                    <div>
+                                        <div className="w-9 h-9 rounded-2xl bg-peach-100 text-peach-600 flex items-center justify-center mb-4">
+                                            <i data-lucide="quote" className="w-4 h-4"></i>
+                                        </div>
+                                        <p className="font-serif text-lg font-medium text-[#3D2B27] leading-relaxed">
+                                            "{profile.quote}"
+                                        </p>
+                                        <p className="text-xs text-[#8C7A76] mt-3 leading-normal italic">
+                                            {profile.quoteSub}
+                                        </p>
+                                    </div>
+                                    <div className="mt-6 pt-4 border-t border-peach-200/50 flex items-center justify-between text-xs text-[#8C7A76]">
+                                        <span className="font-medium text-[#3D2B27]">― {profile.author}</span>
+                                        <div className="flex items-center gap-2">
+                                            <button className="hover:text-peach-600 transition-colors"><i data-lucide="heart" className="w-4 h-4"></i></button>
+                                            <button className="hover:text-peach-600 transition-colors"><i data-lucide="share-2" className="w-4 h-4"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 2. STATS & TRACK RECORD CARD (4 cols) */}
+                                <div className="md:col-span-4 glass-card p-6 rounded-3xl flex flex-col justify-between">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-semibold text-[#8C7A76] uppercase tracking-wider">今日支出 / Status Ringkasan</span>
+                                        <i data-lucide="trending-up" className="w-4 h-4 text-peach-500"></i>
+                                    </div>
+                                    <div className="my-4">
+                                        <div className="font-serif font-bold text-4xl text-[#3D2B27]">
+                                            ¥ 0.00 <span className="text-xs font-sans font-normal text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Available</span>
+                                        </div>
+                                        <div className="text-xs text-[#8C7A76] mt-1">Status Ketersediaan Proyek: Open for Freelance & Remote Work</div>
+                                    </div>
+                                    {/* SVG Wave Chart Simulation */}
+                                    <div className="w-full h-12">
+                                        <svg className="w-full h-full overflow-visible" viewBox="0 0 200 40">
+                                            <path d="M 0 30 Q 30 10, 60 25 T 120 15 T 180 28 L 200 20" fill="none" stroke="#e06d53" strokeWidth="3" strokeLinecap="round" />
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                {/* 3. DAILY SKILL MASTERY RING (4 cols) */}
+                                <div className="md:col-span-4 glass-card p-6 rounded-3xl flex flex-col justify-between">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-semibold text-[#8C7A76] uppercase tracking-wider">今日学习 / Skill Focus</span>
+                                        <span className="text-xs font-bold text-peach-600">85% Mastery</span>
+                                    </div>
+                                    <div className="flex items-center gap-5 my-3">
+                                        <div className="relative w-20 h-20 flex items-center justify-center">
+                                            <svg className="w-full h-full transform -rotate-90">
+                                                <circle cx="40" cy="40" r="32" stroke="#f4d5c3" strokeWidth="6" fill="transparent" />
+                                                <circle cx="40" cy="40" r="32" stroke="#e06d53" strokeWidth="6" fill="transparent" strokeDasharray="200" strokeDashoffset="40" strokeLinecap="round" />
+                                            </svg>
+                                            <span className="absolute text-sm font-bold text-[#3D2B27]">85%</span>
+                                        </div>
+                                        <div className="space-y-1 text-xs">
+                                            <div className="flex items-center gap-2">
+                                                <span className="w-2 h-2 rounded-full bg-peach-500"></span>
+                                                <span className="text-[#8C7A76]">UI/UX Design: <b className="text-[#3D2B27]">92%</b></span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                                                <span className="text-[#8C7A76]">Frontend Dev: <b className="text-[#3D2B27]">88%</b></span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="w-2 h-2 rounded-full bg-orange-300"></span>
+                                                <span className="text-[#8C7A76]">GAS Integration: <b className="text-[#3D2B27]">80%</b></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={() => setActiveTab('projects')}
+                                        className="w-full py-2 bg-peach-100 hover:bg-peach-200 text-peach-700 text-xs font-semibold rounded-xl transition-colors text-center"
+                                    >
+                                        Lihat Portofolio Lengkap
+                                    </button>
+                                </div>
+
+                                {/* 4. FEATURED ARTICLE / SHOWCASE CARD (6 cols) */}
+                                <div className="md:col-span-6 glass-card p-6 rounded-3xl flex flex-col md:flex-row gap-6 items-center">
+                                    <div className="flex-1 space-y-3">
+                                        <span className="text-[11px] font-bold tracking-wider text-peach-600 uppercase bg-peach-100 px-2.5 py-0.5 rounded-md">
+                                            Featured Article
+                                        </span>
+                                        <h3 className="font-serif font-bold text-xl text-[#3D2B27] leading-snug">
+                                            从极简主义到情感化设计, 界面正在回归真实体验
+                                        </h3>
+                                        <p className="text-xs text-[#8C7A76] line-clamp-2 leading-relaxed">
+                                            Mengapa antarmuka web modern kembali mengadopsi elemen tekstur hangat, neomorfik halus, dan desain bento grid intuitif.
+                                        </p>
+                                        <button 
+                                            onClick={() => setActiveTab('projects')}
+                                            className="inline-flex items-center gap-2 text-xs font-bold text-peach-600 hover:text-peach-700 pt-1"
+                                        >
+                                            Baca Selengkapnya <i data-lucide="arrow-right" className="w-3.5 h-3.5"></i>
+                                        </button>
+                                    </div>
+                                    <div className="w-full md:w-44 h-36 rounded-2xl overflow-hidden shadow-inner flex-shrink-0">
+                                        <img 
+                                            src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80" 
+                                            alt="Sunset Soft" 
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* 5. PODCAST / AUDIO WIDGET ("Design Better") (3 cols) */}
+                                <div className="md:col-span-3 glass-card p-5 rounded-3xl flex flex-col justify-between">
+                                    <div className="text-xs font-semibold text-[#8C7A76] uppercase">播客推荐 / Audio Log</div>
+                                    <div className="flex items-center gap-3 my-2">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-peach-500 to-amber-700 text-white flex items-center justify-center font-bold text-xs shadow-md">
+                                            Design<br/>Better
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-sm text-[#3D2B27]">Design Better</div>
+                                            <div className="text-xs text-[#8C7A76]">EP97 · Antarmuka Hangat</div>
+                                        </div>
+                                        <button 
+                                            onClick={() => setIsPlayingAudio(!isPlayingAudio)}
+                                            className="ml-auto w-10 h-10 rounded-full bg-peach-500 hover:bg-peach-600 text-white flex items-center justify-center shadow-lg shadow-peach-500/30 transition-all"
+                                        >
+                                            <i data-lucide={isPlayingAudio ? "pause" : "play"} className="w-4 h-4 fill-white ml-0.5"></i>
+                                        </button>
+                                    </div>
+                                    {/* Progress Bar */}
+                                    <div className="w-full bg-peach-200/60 h-1.5 rounded-full overflow-hidden">
+                                        <div className={`bg-peach-500 h-full transition-all duration-300 ${isPlayingAudio ? 'w-2/3 animate-pulse' : 'w-1/3'}`}></div>
+                                    </div>
+                                </div>
+
+                                {/* 6. FOAM LINKS PREVIEW CARD (3 cols) */}
+                                <div className="md:col-span-3 glass-card p-5 rounded-3xl flex flex-col justify-between border-2 border-peach-300/40">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-semibold text-[#8C7A76] uppercase tracking-wider">快速记事 / Foam Links</span>
+                                        <span className="text-[10px] bg-peach-500 text-white font-bold px-2 py-0.5 rounded-full">New</span>
+                                    </div>
+                                    <div className="my-3 space-y-2">
+                                        <div className="text-xs font-bold text-[#3D2B27] flex items-center gap-2">
+                                            <i data-lucide="link" className="w-3.5 h-3.5 text-peach-500"></i>
+                                            <span>Social Media & Bio Hub</span>
+                                        </div>
+                                        <p className="text-[11px] text-[#8C7A76]">
+                                            Akses semua tautan sosial media, daftar portofolio, dan kontak instan.
+                                        </p>
+                                    </div>
+                                    <button 
+                                        onClick={() => setActiveTab('foam-links')}
+                                        className="w-full py-2 bg-peach-500 hover:bg-peach-600 text-white text-xs font-semibold rounded-xl transition-all shadow-md shadow-peach-500/20 text-center flex items-center justify-center gap-1.5"
+                                    >
+                                        Buka Foam Links ({foamLinks.length}) <i data-lucide="external-link" className="w-3.5 h-3.5"></i>
+                                    </button>
+                                </div>
+
+                            </div>
+                        )}
+
+                        {/* ----------------- TAB 2: FOAM LINKS (SOCIAL & BIO HUB MENU) ----------------- */}
+                        {activeTab === 'foam-links' && (
+                            <div className="space-y-6">
+                                {/* Header Foam Links */}
+                                <div className="glass-card p-6 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                    <div>
+                                        <span className="text-xs font-bold text-peach-600 bg-peach-100 px-3 py-1 rounded-full uppercase tracking-wider">
+                                            Link In Bio & Media Sosial
+                                        </span>
+                                        <h2 className="font-serif font-bold text-2xl md:text-3xl text-[#3D2B27] mt-2">
+                                            Foam Links Hub 🫧
+                                        </h2>
+                                        <p className="text-xs text-[#8C7A76] mt-1">
+                                            Pusat tautan cepat untuk sosial media, pameran karya, dan layanan konsultasi.
+                                        </p>
+                                    </div>
+
+                                    {isAdminLoggedIn && (
+                                        <button 
+                                            onClick={() => setShowAddLinkModal(true)}
+                                            className="px-4 py-2.5 bg-peach-500 hover:bg-peach-600 text-white text-xs font-bold rounded-2xl shadow-lg shadow-peach-500/30 flex items-center gap-2 transition-all"
+                                        >
+                                            <i data-lucide="plus-circle" className="w-4 h-4"></i> Tambah Foam Link
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Filter Categories */}
+                                <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                                    {['All', 'Social Media', 'Design Showcase', 'Code', 'Services', 'Lifestyle'].map((cat) => (
+                                        <button
+                                            key={cat}
+                                            onClick={() => setSelectedCategory(cat)}
+                                            className={`px-4 py-2 rounded-2xl text-xs font-semibold whitespace-nowrap transition-all ${selectedCategory === cat ? 'bg-peach-500 text-white shadow-md shadow-peach-500/20' : 'glass-card text-[#8C7A76] hover:bg-white'}`}
+                                        >
+                                            {cat}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Foam Link Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {filteredLinks.map((link) => (
+                                        <div 
+                                            key={link.id}
+                                            onClick={() => handleLinkClick(link.id, link.url)}
+                                            className="glass-card p-5 rounded-3xl flex items-center justify-between gap-4 cursor-pointer hover:scale-[1.01] transition-all group"
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-2xl bg-peach-100 text-peach-600 flex items-center justify-center group-hover:bg-peach-500 group-hover:text-white transition-all shadow-sm">
+                                                    <i data-lucide={link.icon || "link"} className="w-6 h-6"></i>
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <h4 className="font-bold text-sm text-[#3D2B27] group-hover:text-peach-600 transition-colors">
+                                                            {link.title}
+                                                        </h4>
+                                                        <span className="text-[10px] text-[#8C7A76] bg-peach-100/70 px-2 py-0.5 rounded-md">
+                                                            {link.category}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-[#8C7A76] mt-0.5">
+                                                        {link.description}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-[11px] font-medium text-[#8C7A76] bg-white/80 px-2.5 py-1 rounded-xl border border-peach-200/60">
+                                                    {link.clicks} clicks
+                                                </span>
+                                                <div className="w-8 h-8 rounded-full bg-peach-100 text-peach-600 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
+                                                    <i data-lucide="arrow-up-right" className="w-4 h-4"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ----------------- TAB 3: PROJECTS SHOWCASE ----------------- */}
+                        {activeTab === 'projects' && (
+                            <div className="space-y-6">
+                                <div className="glass-card p-6 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                    <div>
+                                        <span className="text-xs font-bold text-peach-600 bg-peach-100 px-3 py-1 rounded-full uppercase">
+                                            Karya & Proyek Pilihan
+                                        </span>
+                                        <h2 className="font-serif font-bold text-2xl md:text-3xl text-[#3D2B27] mt-2">
+                                            Portofolio Showcase 💼
+                                        </h2>
+                                    </div>
+
+                                    {isAdminLoggedIn && (
+                                        <button 
+                                            onClick={() => setShowAddProjectModal(true)}
+                                            className="px-4 py-2.5 bg-peach-500 hover:bg-peach-600 text-white text-xs font-bold rounded-2xl shadow-lg shadow-peach-500/30 flex items-center gap-2"
+                                        >
+                                            <i data-lucide="plus-circle" className="w-4 h-4"></i> Tambah Proyek
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {projects.map((proj) => (
+                                        <div key={proj.id} className="glass-card rounded-3xl overflow-hidden flex flex-col justify-between group">
+                                            <div className="h-48 overflow-hidden relative">
+                                                <img src={proj.image} alt={proj.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-md text-[#3D2B27] font-bold text-[10px] px-3 py-1 rounded-full shadow-sm">
+                                                    {proj.category}
+                                                </span>
+                                            </div>
+                                            <div className="p-6 flex-1 flex flex-col justify-between">
+                                                <div>
+                                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27] mb-1">{proj.title}</h3>
+                                                    <p className="text-xs font-medium text-peach-600 mb-2">{proj.subtitle}</p>
+                                                    <p className="text-xs text-[#8C7A76] leading-relaxed mb-4">{proj.description}</p>
+                                                </div>
+                                                <div className="pt-4 border-t border-peach-200/50 flex items-center justify-between">
+                                                    <div className="flex gap-1.5">
+                                                        {proj.tags.map((tag, idx) => (
+                                                            <span key={idx} className="text-[10px] bg-peach-100 text-peach-700 font-semibold px-2 py-0.5 rounded-md">
+                                                                {tag}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                    <a href={proj.demoUrl} target="_blank" className="text-xs font-bold text-peach-600 hover:text-peach-700 flex items-center gap-1">
+                                                        Lihat Detail <i data-lucide="external-link" className="w-3.5 h-3.5"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ----------------- TAB 4: CONTACT FORM ----------------- */}
+                        {activeTab === 'contact' && (
+                            <div className="max-w-2xl mx-auto space-y-6 w-full">
+                                <div className="glass-card p-6 md:p-8 rounded-3xl text-center space-y-3">
+                                    <div className="w-14 h-14 rounded-full bg-peach-100 text-peach-600 mx-auto flex items-center justify-center">
+                                        <i data-lucide="mail" className="w-7 h-7"></i>
+                                    </div>
+                                    <h2 className="font-serif font-bold text-3xl text-[#3D2B27]">Mari Berkolaborasi ✉️</h2>
+                                    <p className="text-xs text-[#8C7A76] max-w-md mx-auto">
+                                        Punya ide proyek menarik atau ingin berkonsultasi mengenai UI/UX dan webapp? Kirimkan pesan di bawah ini.
+                                    </p>
+                                </div>
+
+                                {contactSubmitted && (
+                                    <div className="p-4 bg-emerald-100 border border-emerald-300 text-emerald-800 rounded-2xl text-xs font-medium text-center">
+                                        🎉 Terima kasih! Pesan Anda telah terkirim dan akan segera dibalas.
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleContactSubmit} className="glass-card p-6 md:p-8 rounded-3xl space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">Nama Lengkap</label>
+                                            <input 
+                                                type="text" 
+                                                required 
+                                                value={contactForm.name} 
+                                                onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                                                placeholder="Nama Anda"
+                                                className="w-full bg-white/80 border border-peach-200 rounded-xl px-3.5 py-2.5 text-xs text-[#3D2B27] focus:outline-none focus:border-peach-500" 
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">Alamat Email</label>
+                                            <input 
+                                                type="email" 
+                                                required 
+                                                value={contactForm.email} 
+                                                onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                                                placeholder="email@domain.com"
+                                                className="w-full bg-white/80 border border-peach-200 rounded-xl px-3.5 py-2.5 text-xs text-[#3D2B27] focus:outline-none focus:border-peach-500" 
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Subjek Pesan</label>
+                                        <input 
+                                            type="text" 
+                                            required 
+                                            value={contactForm.subject} 
+                                            onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
+                                            placeholder="Topik Diskusi / Penawaran Proyek"
+                                            className="w-full bg-white/80 border border-peach-200 rounded-xl px-3.5 py-2.5 text-xs text-[#3D2B27] focus:outline-none focus:border-peach-500" 
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Pesan / Detail Proyek</label>
+                                        <textarea 
+                                            rows="4" 
+                                            required 
+                                            value={contactForm.message} 
+                                            onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                                            placeholder="Tuliskan pesan singkat Anda di sini..."
+                                            className="w-full bg-white/80 border border-peach-200 rounded-xl px-3.5 py-2.5 text-xs text-[#3D2B27] focus:outline-none focus:border-peach-500"
+                                        ></textarea>
+                                    </div>
+                                    <button 
+                                        type="submit" 
+                                        className="w-full py-3 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-peach-500/30 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <i data-lucide="send" className="w-4 h-4"></i> Kirim Pesan Now
+                                    </button>
+                                </form>
+                            </div>
+                        )}
+
+                        {/* ----------------- TAB 5: ADMIN DASHBOARD (PROTECTED) ----------------- */}
+                        {activeTab === 'admin' && isAdminLoggedIn && (
+                            <div className="space-y-6">
+                                <div className="glass-card p-6 rounded-3xl flex justify-between items-center">
+                                    <div>
+                                        <span className="text-xs font-bold text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full uppercase">
+                                            Logged in as Administrator
+                                        </span>
+                                        <h2 className="font-serif font-bold text-2xl text-[#3D2B27] mt-2">Admin Control Center 🔐</h2>
+                                    </div>
+                                    <button 
+                                        onClick={() => { setIsAdminLoggedIn(false); setActiveTab('home'); }}
+                                        className="px-4 py-2 bg-rose-500 text-white text-xs font-bold rounded-xl hover:bg-rose-600 transition-all"
+                                    >
+                                        Logout
+                                    </button>
+                                </div>
+
+                                {/* Inbox Messages */}
+                                <div className="glass-card p-6 rounded-3xl space-y-4">
+                                    <h3 className="font-bold text-base text-[#3D2B27] flex items-center gap-2">
+                                        <i data-lucide="inbox" className="w-4 h-4 text-peach-500"></i>
+                                        Pesan Masuk ({messages.length})
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {messages.map((msg) => (
+                                            <div key={msg.id} className="p-4 bg-white/80 border border-peach-200 rounded-2xl text-xs space-y-1">
+                                                <div className="flex justify-between font-bold text-[#3D2B27]">
+                                                    <span>{msg.name} ({msg.email})</span>
+                                                    <span className="text-[#8C7A76] font-normal">{msg.date}</span>
+                                                </div>
+                                                <div className="text-peach-700 font-semibold">{msg.subject}</div>
+                                                <p className="text-[#8C7A76]">{msg.text}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ----------------- BOTTOM QUICK PILL BAR ----------------- */}
+                        <div className="glass-card p-2.5 rounded-full flex items-center justify-center gap-2 max-w-md mx-auto border border-white/90 shadow-lg shadow-peach-900/5">
+                            <button 
+                                onClick={() => setActiveTab('foam-links')} 
+                                className="flex items-center gap-1.5 text-xs font-bold text-[#3D2B27] hover:bg-peach-100 px-3 py-1.5 rounded-full transition-colors"
+                            >
+                                <span className="w-2 h-2 rounded-full bg-peach-500"></span> 记一笔 / Link Hub
+                            </button>
+                            <span className="text-peach-300">|</span>
+                            <button 
+                                onClick={() => setActiveTab('projects')} 
+                                className="flex items-center gap-1.5 text-xs font-bold text-[#3D2B27] hover:bg-peach-100 px-3 py-1.5 rounded-full transition-colors"
+                            >
+                                🔥 Portofolio
+                            </button>
+                            <span className="text-peach-300">|</span>
+                            <button 
+                                onClick={() => setActiveTab('contact')} 
+                                className="flex items-center gap-1.5 text-xs font-bold text-[#3D2B27] hover:bg-peach-100 px-3 py-1.5 rounded-full transition-colors"
+                            >
+                                ✍️ Kirim Pesan
+                            </button>
+                        </div>
+
+                    </main>
+
+                    {/* ----------------- MODAL LOGIN ADMIN ----------------- */}
+                    {showLoginModal && (
+                        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
+                            <div className="glass-card p-6 md:p-8 rounded-3xl max-w-sm w-full space-y-4 bg-white relative">
+                                <button onClick={() => setShowLoginModal(false)} className="absolute top-4 right-4 text-[#8C7A76]">
+                                    <i data-lucide="x" className="w-5 h-5"></i>
+                                </button>
+                                <div className="text-center space-y-1">
+                                    <h3 className="font-serif font-bold text-2xl text-[#3D2B27]">Admin Login</h3>
+                                    <p className="text-xs text-[#8C7A76]">Masukan kredensial untuk mengelola data.</p>
+                                </div>
+                                <form onSubmit={handleLoginSubmit} className="space-y-3 pt-2">
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Username</label>
+                                        <input 
+                                            type="text" 
+                                            required 
+                                            value={loginForm.username} 
+                                            onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
+                                            placeholder="admin"
+                                            className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" 
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Password</label>
+                                        <input 
+                                            type="password" 
+                                            required 
+                                            value={loginForm.password} 
+                                            onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                                            placeholder="edudigital"
+                                            className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" 
+                                        />
+                                    </div>
+                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">
+                                        Masuk Panel Admin
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ----------------- MODAL TAMBAH FOAM LINK ----------------- */}
+                    {showAddLinkModal && (
+                        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
+                            <div className="glass-card p-6 rounded-3xl max-w-md w-full space-y-4 bg-white relative">
+                                <button onClick={() => setShowAddLinkModal(false)} className="absolute top-4 right-4 text-[#8C7A76]">
+                                    <i data-lucide="x" className="w-5 h-5"></i>
+                                </button>
+                                <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Tambah Foam Link Baru</h3>
+                                <form onSubmit={handleAddFoamLink} className="space-y-3">
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Judul Tautan</label>
+                                        <input type="text" required value={newLinkForm.title} onChange={(e) => setNewLinkForm({ ...newLinkForm, title: e.target.value })} placeholder="misal: Instagram Visual" className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Kategori</label>
+                                        <select value={newLinkForm.category} onChange={(e) => setNewLinkForm({ ...newLinkForm, category: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs bg-white">
+                                            <option value="Social Media">Social Media</option>
+                                            <option value="Design Showcase">Design Showcase</option>
+                                            <option value="Code">Code</option>
+                                            <option value="Services">Services</option>
+                                            <option value="Lifestyle">Lifestyle</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">URL Target</label>
+                                        <input type="url" required value={newLinkForm.url} onChange={(e) => setNewLinkForm({ ...newLinkForm, url: e.target.value })} placeholder="https://..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Deskripsi Singkat</label>
+                                        <input type="text" value={newLinkForm.description} onChange={(e) => setNewLinkForm({ ...newLinkForm, description: e.target.value })} placeholder="Keterangan tautan..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">
+                                        Simpan Foam Link
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
