@@ -223,11 +223,21 @@
             }, [activeTab, foamLinks, works, skills, profile, isAdminLoggedIn, selectedLinkCategory, selectedWorkFilter]);
 
             const showToast = (msg) => {
-                setToastMessage(msg);
-                setTimeout(() => setToastMessage(''), 3000);
-            };
+            setToastMessage(msg);
+            setTimeout(() => setToastMessage(''), 3000);
+        };
 
-            // ---------------- HANDLERS EDITABLE SEKSIONAL ----------------
+        // HELPER DETEKSI & SANITASI URL TARGET
+        const formatUrl = (url) => {
+            if (!url) return '#';
+            let cleanUrl = url.trim();
+            if (!/^https?:\/\//i.test(cleanUrl)) {
+                cleanUrl = 'https://' + cleanUrl;
+            }
+            return cleanUrl;
+        };
+
+        // ---------------- HANDLERS EDITABLE SEKSIONAL ----------------
             const handleSaveProfile = (e) => {
                 e.preventDefault();
                 setProfile(prev => ({ ...prev, ...profileForm }));
@@ -287,13 +297,17 @@
 
             // ---------------- HANDLERS FOAM LINK & WORKS ----------------
             const handleLinkClick = (id, url) => {
-                setFoamLinks(prev => prev.map(item => item.id === id ? { ...item, clicks: item.clicks + 1 } : item));
-                window.open(url, '_blank');
+                if (!url) return;
+                const targetUrl = formatUrl(url);
+                setFoamLinks(prev => prev.map(item => item.id === id ? { ...item, clicks: (item.clicks || 0) + 1 } : item));
+                window.open(targetUrl, '_blank', 'noopener,noreferrer');
             };
 
             const handleCopyLink = (e, url) => {
                 e.stopPropagation();
-                navigator.clipboard.writeText(url);
+                if (!url) return;
+                const targetUrl = formatUrl(url);
+                navigator.clipboard.writeText(targetUrl);
                 showToast('📋 Tautan berhasil disalin!');
             };
 
@@ -806,7 +820,7 @@
                                                         </button>
                                                     ) : (
                                                         work.demoUrl && (
-                                                            <a href={work.demoUrl} target="_blank" className="text-xs font-bold text-peach-600 hover:text-peach-700 flex items-center gap-1">
+                                                            <a href={formatUrl(work.demoUrl)} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-peach-600 hover:text-peach-700 flex items-center gap-1">
                                                                 Demo Proyek <i data-lucide="external-link" className="w-3.5 h-3.5"></i>
                                                             </a>
                                                         )
@@ -958,8 +972,8 @@
 
                     {/* MODAL 1: EDIT PROFILE HEADER */}
                     {showProfileModal && (
-                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-                            <div className="glass-card p-6 rounded-3xl max-w-lg w-full bg-white space-y-4 max-h-[90vh] overflow-y-auto">
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowProfileModal(false)}>
+                            <div className="glass-card p-6 rounded-3xl max-w-lg w-full bg-white space-y-4 max-h-[90vh] overflow-y-auto cursor-default" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex justify-between items-center">
                                     <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Edit Profil & Header Utama</h3>
                                     <button onClick={() => setShowProfileModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
@@ -989,7 +1003,14 @@
                                         <label className="text-xs font-bold text-[#3D2B27] block mb-1">URL Avatar / Foto Profil</label>
                                         <input type="url" value={profileForm.avatar} onChange={(e) => setProfileForm({ ...profileForm, avatar: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
-                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Simpan Perubahan Profil</button>
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="button" onClick={() => setShowProfileModal(false)} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
+                                            Batal
+                                        </button>
+                                        <button type="submit" className="w-1/2 py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                                            Simpan Perubahan
+                                        </button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -997,8 +1018,8 @@
 
                     {/* MODAL 2: EDIT STATUS & AVAILABILITY */}
                     {showStatusModal && (
-                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4">
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowStatusModal(false)}>
+                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4 cursor-default" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex justify-between items-center">
                                     <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Edit Status Proyek & Hire</h3>
                                     <button onClick={() => setShowStatusModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
@@ -1020,7 +1041,14 @@
                                         <input type="checkbox" id="availableForHire" checked={statusForm.availableForHire} onChange={(e) => setStatusForm({ ...statusForm, availableForHire: e.target.checked })} className="rounded accent-peach-500" />
                                         <label htmlFor="availableForHire" className="text-xs font-semibold text-[#3D2B27]">Aktifkan Mode Siap Dihubungi (Hijau)</label>
                                     </div>
-                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Simpan Status Proyek</button>
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="button" onClick={() => setShowStatusModal(false)} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
+                                            Batal
+                                        </button>
+                                        <button type="submit" className="w-1/2 py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                                            Simpan Status
+                                        </button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -1028,8 +1056,8 @@
 
                     {/* MODAL 3: EDIT QUOTE */}
                     {showQuoteModal && (
-                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4">
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowQuoteModal(false)}>
+                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4 cursor-default" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex justify-between items-center">
                                     <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Edit Quote Inspiratif</h3>
                                     <button onClick={() => setShowQuoteModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
@@ -1047,7 +1075,14 @@
                                         <label className="text-xs font-bold text-[#3D2B27] block mb-1">Penulis / Tokoh Quote</label>
                                         <input type="text" required value={quoteForm.author} onChange={(e) => setQuoteForm({ ...quoteForm, author: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
-                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Simpan Quote</button>
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="button" onClick={() => setShowQuoteModal(false)} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
+                                            Batal
+                                        </button>
+                                        <button type="submit" className="w-1/2 py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                                            Simpan Quote
+                                        </button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -1055,8 +1090,8 @@
 
                     {/* MODAL 4: EDIT SKILLS */}
                     {showSkillsModal && (
-                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-                            <div className="glass-card p-6 rounded-3xl max-w-lg w-full bg-white space-y-4 max-h-[85vh] overflow-y-auto">
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowSkillsModal(false)}>
+                            <div className="glass-card p-6 rounded-3xl max-w-lg w-full bg-white space-y-4 max-h-[85vh] overflow-y-auto cursor-default" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex justify-between items-center">
                                     <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Kelola Daftar Keahlian (Skills)</h3>
                                     <button onClick={() => setShowSkillsModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
@@ -1075,7 +1110,14 @@
                                     <button type="button" onClick={handleAddSkillItem} className="w-full py-2 bg-peach-100 text-peach-700 font-bold text-xs rounded-xl border border-dashed border-peach-300">
                                         + Tambah Baris Skill Baru
                                     </button>
-                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Simpan Daftar Skills</button>
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="button" onClick={() => setShowSkillsModal(false)} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
+                                            Batal
+                                        </button>
+                                        <button type="submit" className="w-1/2 py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                                            Simpan Skills
+                                        </button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -1083,8 +1125,8 @@
 
                     {/* MODAL 5: EDIT AUDIO LOG */}
                     {showAudioModal && (
-                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4">
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowAudioModal(false)}>
+                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4 cursor-default" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex justify-between items-center">
                                     <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Edit Audio Log / Podcast</h3>
                                     <button onClick={() => setShowAudioModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
@@ -1102,7 +1144,14 @@
                                         <label className="text-xs font-bold text-[#3D2B27] block mb-1">Detail Episode / Keterangan</label>
                                         <input type="text" required value={audioForm.audioEp} onChange={(e) => setAudioForm({ ...audioForm, audioEp: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
-                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Simpan Audio Log</button>
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="button" onClick={() => setShowAudioModal(false)} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
+                                            Batal
+                                        </button>
+                                        <button type="submit" className="w-1/2 py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                                            Simpan Audio Log
+                                        </button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -1110,8 +1159,8 @@
 
                     {/* MODAL 6: EDIT SPOTLIGHT BANNER */}
                     {showSpotlightModal && (
-                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4">
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowSpotlightModal(false)}>
+                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4 cursor-default" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex justify-between items-center">
                                     <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Edit Spotlight Banner</h3>
                                     <button onClick={() => setShowSpotlightModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
@@ -1129,7 +1178,14 @@
                                         <label className="text-xs font-bold text-[#3D2B27] block mb-1">Sub-deskripsi Banner</label>
                                         <textarea rows="2" value={spotlightForm.spotlightDesc} onChange={(e) => setSpotlightForm({ ...spotlightForm, spotlightDesc: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
                                     </div>
-                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Simpan Spotlight Banner</button>
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="button" onClick={() => setShowSpotlightModal(false)} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
+                                            Batal
+                                        </button>
+                                        <button type="submit" className="w-1/2 py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                                            Simpan Spotlight
+                                        </button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -1137,8 +1193,8 @@
 
                     {/* MODAL 7: EDIT CONTACT TAB TEXTS */}
                     {showContactEditModal && (
-                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4">
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowContactEditModal(false)}>
+                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4 cursor-default" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex justify-between items-center">
                                     <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Edit Teks Halaman Kontak</h3>
                                     <button onClick={() => setShowContactEditModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
@@ -1152,7 +1208,14 @@
                                         <label className="text-xs font-bold text-[#3D2B27] block mb-1">Deskripsi Halaman Kontak</label>
                                         <textarea rows="3" required value={contactEditForm.contactDesc} onChange={(e) => setContactEditForm({ ...contactEditForm, contactDesc: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
                                     </div>
-                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Simpan Teks Kontak</button>
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="button" onClick={() => setShowContactEditModal(false)} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
+                                            Batal
+                                        </button>
+                                        <button type="submit" className="w-1/2 py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                                            Simpan Teks Kontak
+                                        </button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -1160,11 +1223,11 @@
 
                     {/* MODAL FOAM LINK (ADD/EDIT) */}
                     {showLinkModal && (
-                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4">
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => { setShowLinkModal(false); setEditingLink(null); }}>
+                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4 cursor-default" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex justify-between items-center">
                                     <h3 className="font-serif font-bold text-xl text-[#3D2B27]">{editingLink ? 'Edit Foam Link' : 'Tambah Foam Link Baru'}</h3>
-                                    <button onClick={() => setShowLinkModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
+                                    <button onClick={() => { setShowLinkModal(false); setEditingLink(null); }}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
                                 </div>
                                 <form onSubmit={handleSaveLink} className="space-y-3">
                                     <div>
@@ -1187,7 +1250,7 @@
                                     </div>
                                     <div>
                                         <label className="text-xs font-bold text-[#3D2B27] block mb-1">URL Target</label>
-                                        <input type="url" required value={linkForm.url} onChange={(e) => setLinkForm({ ...linkForm, url: e.target.value })} placeholder="https://..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        <input type="text" required value={linkForm.url} onChange={(e) => setLinkForm({ ...linkForm, url: e.target.value })} placeholder="instagram.com/username atau https://..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
                                     <div>
                                         <label className="text-xs font-bold text-[#3D2B27] block mb-1">Deskripsi Ringkas</label>
@@ -1197,7 +1260,14 @@
                                         <input type="checkbox" id="isFeatured" checked={linkForm.isFeatured} onChange={(e) => setLinkForm({ ...linkForm, isFeatured: e.target.checked })} className="rounded accent-peach-500" />
                                         <label htmlFor="isFeatured" className="text-xs font-semibold text-[#3D2B27]">Tandai Sebagai Tautan Unggulan (Featured Badge)</label>
                                     </div>
-                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Simpan Foam Link</button>
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="button" onClick={() => { setShowLinkModal(false); setEditingLink(null); }} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
+                                            Batal
+                                        </button>
+                                        <button type="submit" className="w-1/2 py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                                            Simpan Foam Link
+                                        </button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -1205,11 +1275,11 @@
 
                     {/* MODAL KARYA (ADD/EDIT) */}
                     {showWorkModal && (
-                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-                            <div className="glass-card p-6 rounded-3xl max-w-lg w-full bg-white space-y-4 max-h-[90vh] overflow-y-auto">
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => { setShowWorkModal(false); setEditingWork(null); }}>
+                            <div className="glass-card p-6 rounded-3xl max-w-lg w-full bg-white space-y-4 max-h-[90vh] overflow-y-auto cursor-default" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex justify-between items-center">
                                     <h3 className="font-serif font-bold text-xl text-[#3D2B27]">{editingWork ? 'Edit Karya' : 'Tambah Karya Baru'}</h3>
-                                    <button onClick={() => setShowWorkModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
+                                    <button onClick={() => { setShowWorkModal(false); setEditingWork(null); }}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
                                 </div>
                                 <form onSubmit={handleSaveWork} className="space-y-3">
                                     <div>
@@ -1246,7 +1316,14 @@
                                         <label className="text-xs font-bold text-[#3D2B27] block mb-1">Tags (pisahkan dengan koma)</label>
                                         <input type="text" value={workForm.tags} onChange={(e) => setWorkForm({ ...workForm, tags: e.target.value })} placeholder="React, UI Design, Article" className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
-                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Simpan Karya</button>
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="button" onClick={() => { setShowWorkModal(false); setEditingWork(null); }} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
+                                            Batal
+                                        </button>
+                                        <button type="submit" className="w-1/2 py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                                            Simpan Karya
+                                        </button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -1254,8 +1331,8 @@
 
                     {/* MODAL READER NASKAH ARTIKEL */}
                     {activeArticleModal && (
-                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-                            <div className="glass-card p-6 md:p-8 rounded-3xl max-w-2xl w-full bg-white space-y-4 max-h-[85vh] overflow-y-auto">
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setActiveArticleModal(null)}>
+                            <div className="glass-card p-6 md:p-8 rounded-3xl max-w-2xl w-full bg-white space-y-4 max-h-[85vh] overflow-y-auto cursor-default" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex justify-between items-start border-b border-peach-200 pb-3">
                                     <div>
                                         <span className="text-[10px] bg-peach-100 text-peach-700 font-bold px-2.5 py-0.5 rounded-full uppercase">
@@ -1287,8 +1364,8 @@
 
                     {/* MODAL LOGIN ADMIN */}
                     {showLoginModal && (
-                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-                            <div className="glass-card p-6 rounded-3xl max-w-sm w-full bg-white space-y-4 relative">
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowLoginModal(false)}>
+                            <div className="glass-card p-6 rounded-3xl max-w-sm w-full bg-white space-y-4 relative cursor-default" onClick={(e) => e.stopPropagation()}>
                                 <button onClick={() => setShowLoginModal(false)} className="absolute top-4 right-4 text-[#8C7A76]">
                                     <i data-lucide="x" className="w-5 h-5"></i>
                                 </button>
@@ -1305,7 +1382,14 @@
                                         <label className="text-xs font-bold text-[#3D2B27] block mb-1">Password</label>
                                         <input type="password" required value={loginForm.password} onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })} placeholder="edudigital" className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
-                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Masuk Panel Admin</button>
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="button" onClick={() => setShowLoginModal(false)} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
+                                            Batal
+                                        </button>
+                                        <button type="submit" className="w-1/2 py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                                            Masuk Panel Admin
+                                        </button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
