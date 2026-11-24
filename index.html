@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warm Bento Portfolio & Bio Links</title>
+    <title>Warm Bento Portfolio & Foam Link Hub</title>
     <!-- Google Fonts: Plus Jakarta Sans & Playfair Display -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,13 +29,6 @@
                             500: '#e06d53',
                             600: '#cb553c',
                             700: '#a7402b',
-                        },
-                        warm: {
-                            card: 'rgba(255, 255, 255, 0.78)',
-                            cardHover: 'rgba(255, 255, 255, 0.92)',
-                            textPrimary: '#3D2B27',
-                            textMuted: '#8C7A76',
-                            border: 'rgba(224, 212, 204, 0.6)',
                         }
                     }
                 }
@@ -65,39 +58,31 @@
             overflow-x: hidden;
         }
         .glass-card {
-            background: rgba(255, 255, 255, 0.75);
+            background: rgba(255, 255, 255, 0.78);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.85);
             box-shadow: 0 10px 30px -5px rgba(180, 120, 100, 0.08);
+            position: relative;
         }
         .glass-card:hover {
-            box-shadow: 0 16px 35px -5px rgba(180, 120, 100, 0.12);
+            box-shadow: 0 16px 35px -5px rgba(180, 120, 100, 0.14);
         }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #faf0e6;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #e4d1c6;
-            border-radius: 99px;
-        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #faf0e6; }
+        ::-webkit-scrollbar-thumb { background: #e4d1c6; border-radius: 99px; }
     </style>
 </head>
 <body class="bg-gradient-to-br from-[#faf0e6] via-[#f7e6dc] to-[#f3dacb] text-[#3D2B27] font-sans min-h-screen">
     <div id="root"></div>
 
     <script type="text/babel">
-        // KONFIGURASI APLIKASI WEBAPP
-        // Ubah IS_PREVIEW ke false jika sudah di-deploy dan menyambung ke URL Apps Script
+        // KONFIGURASI SAKLAR DEPLOYMENT
         const IS_PREVIEW = false;
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbwi4eYNDVWU0I2KAmP6xXiqDQmXpqxmJWtjwSHS4U6szf2iSdHFMaO1WpwLHvn8Myd5Iw/exec";
+        const GAS_URL = "URL_DEPLOY_GAS_ANDA_DISINI";
 
-        // DUMMY DATA UNTUK PREVIEW MODE
-        const INITIAL_PROFILE = {
+        // INITIAL DATA DEFAULT DEEP EDITABLE
+        const DEFAULT_PROFILE = {
             name: "Vivian Greene",
             role: "Senior UI/UX & Web Developer",
             greeting: "Good morning.",
@@ -109,90 +94,246 @@
             location: "Jakarta / 26°C",
             weather: "Cerah, Kelembapan 68%",
             availableForHire: true,
+            statusTitle: "Available",
+            statusBadge: "For Hire",
+            statusDesc: "Menerima proyek desain UI/UX, pembuatan WebApp GAS, dan konsultasi.",
             email: "vivian.design@example.com",
             whatsapp: "6281234567890",
-            github: "https://github.com",
-            linkedin: "https://linkedin.com",
-            cvUrl: "#"
+            audioTitle: "Design Better Podcast",
+            audioEp: "EP97 · Antarmuka Hangat & Emotional UI",
+            audioCoverTag: "Design",
+            spotlightBadge: "🔥 Bio Links & Social Hub",
+            spotlightTitle: "Temukan Semua Tautan & Layanan Saya Dalam Satu Tempat",
+            spotlightDesc: "Jelajahi portofolio Behance, repository GitHub, artikel Medium, serta tautan booking konsultasi.",
+            contactTitle: "Mari Berdiskusi ✉️",
+            contactDesc: "Punya penawaran proyek, pertanyaan seputar desain, atau ingin menyapa? Kirimkan pesan di bawah ini."
         };
 
-        const INITIAL_FOAM_LINKS = [
-            { id: 1, title: "Instagram Profile", category: "Social Media", icon: "instagram", url: "https://instagram.com", clicks: 342, description: "@vivian.design - Visual updates & daily stories" },
-            { id: 2, title: "Behance Portfolio", category: "Design Showcase", icon: "figma", url: "https://behance.net", clicks: 520, description: "Full UI/UX Case studies & Workflows" },
-            { id: 3, title: "GitHub Repositories", category: "Code", icon: "github", url: "https://github.com", clicks: 215, description: "Open source web projects & React components" },
-            { id: 4, title: "Book a Consultation", category: "Services", icon: "calendar", url: "https://calendly.com", clicks: 89, description: "Jadwalkan sesi diskusi proyek 1-on-1" },
-            { id: 5, title: "LinkedIn Network", category: "Social Media", icon: "linkedin", url: "https://linkedin.com", clicks: 198, description: "Pengalaman profesional & jaringan kerja" },
-            { id: 6, title: "Spotify Design Playlist", category: "Lifestyle", icon: "music", url: "https://spotify.com", clicks: 145, description: "Musik fokus saat merancang antarmuka" }
+        const DEFAULT_FOAM_LINKS = [
+            { id: 1, title: "Instagram Profile", category: "Social Media", icon: "instagram", url: "https://instagram.com", clicks: 428, description: "@vivian.design - Visual updates & daily creative process", isFeatured: true },
+            { id: 2, title: "Behance Portfolio", category: "Design Showcase", icon: "figma", url: "https://behance.net", clicks: 610, description: "Full UI/UX Case studies, wireframes & prototype flows", isFeatured: true },
+            { id: 3, title: "GitHub Repositories", category: "Code", icon: "github", url: "https://github.com", clicks: 312, description: "Open source web projects, React hooks & components", isFeatured: false },
+            { id: 4, title: "Jadwalkan Konsultasi 1-on-1", category: "Services", icon: "calendar", url: "https://calendly.com", clicks: 154, description: "Diskusi proyek UI/UX, audit website, atau sesi mentoring", isFeatured: true },
+            { id: 5, title: "LinkedIn Professional", category: "Social Media", icon: "linkedin", url: "https://linkedin.com", clicks: 275, description: "Pengalaman kerja profesional, lisensi & sertifikasi", isFeatured: false },
+            { id: 6, title: "Spotify Focus Playlist", category: "Lifestyle", icon: "music", url: "https://spotify.com", clicks: 189, description: "Kumpulan musik ambient pilihan saat merancang desain", isFeatured: false }
         ];
 
-        const INITIAL_PROJECTS = [
+        const DEFAULT_WORKS = [
             {
                 id: 1,
+                workType: "image", // 'image' atau 'text'
                 title: "From Minimalism to Emotional Design",
-                subtitle: "界面正在回归真实体验",
-                category: "UI/UX Case Study",
+                subtitle: "界面正在回归真实体验 · UI/UX Case Study",
+                category: "Visual Work",
                 description: "Eksplorasi desain antarmuka modern yang menggabungkan prinsip neumorphism lembut dengan fungsionalitas produk harian.",
+                fullContent: "Dalam studi kasus ini, kami mengeksplorasi bagaimana komponen antarmuka bento grid mampu mentransformasi pengalaman pengguna menjadi lebih intim dan menyenangkan...",
                 image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
                 tags: ["React", "Tailwind", "Figma"],
-                demoUrl: "#",
-                githubUrl: "#"
+                demoUrl: "https://example.com"
             },
             {
                 id: 2,
-                title: "Next Week Travel Checklist App",
-                subtitle: "下周旅行计划清单",
-                category: "Mobile Web App",
-                description: "Aplikasi produktivitas interaktif dengan estetika hangat untuk manajemen itinerary dan inventaris perjalanan.",
-                image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80",
-                tags: ["Vue", "GAS", "PWA"],
-                demoUrl: "#",
-                githubUrl: "#"
+                workType: "text",
+                title: "Panduan Merancang Bento Grid UI yang Intuitif",
+                subtitle: "Esai & Catatan Desain Modern",
+                category: "Artikel & Teks",
+                description: "Analisis mendalam mengenai struktur bento box pada antarmuka web, hierarki visual, dan pembagian porsi informasi.",
+                fullContent: "Bento Grid bukan sekadar tren visual, melainkan sebuah metode modularisasi informasi. Dengan membagi konten ke dalam modul-modul independen yang saling melengkapi, mata pengguna dapat memproses informasi secara acak tanpa kehilangan konteks utama...\n\nPrinsip Utama:\n1. Kontras visual melalui variasi ukuran grid (1x1, 2x1, 2x2).\n2. Penggunaan sudut membulat yang konsisten (24px - 32px).\n3. Sentuhan mikro-interaksi saat hover untuk memberikan respon intuitif.",
+                image: "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=800&q=80",
+                tags: ["UI Design", "Article", "UX Writing"],
+                demoUrl: ""
             }
         ];
 
-        const INITIAL_MESSAGES = [
-            { id: 1, name: "Budi Santoso", email: "budi@agency.com", subject: "Penawaran Proyek UI", text: "Halo Vivian, saya tertarik berdiskusi untuk redesain web dashboard kami.", date: "2026-11-20" }
+        const DEFAULT_SKILLS = [
+            { id: 1, name: "UI/UX & Prototyping", percentage: 92 },
+            { id: 2, name: "Frontend (React / Tailwind)", percentage: 88 },
+            { id: 3, name: "GAS & Web Automation", percentage: 82 }
         ];
 
         function App() {
             // State Utama
-            const [activeTab, setActiveTab] = React.useState('home'); // home, foam-links, projects, contact, admin
-            const [profile, setProfile] = React.useState(INITIAL_PROFILE);
-            const [foamLinks, setFoamLinks] = React.useState(INITIAL_FOAM_LINKS);
-            const [projects, setProjects] = React.useState(INITIAL_PROJECTS);
-            const [messages, setMessages] = React.useState(INITIAL_MESSAGES);
-            
-            // Search & Filter
+            const [activeTab, setActiveTab] = React.useState('home'); 
+            const [profile, setProfile] = React.useState(() => {
+                const saved = localStorage.getItem('bento_profile');
+                return saved ? JSON.parse(saved) : DEFAULT_PROFILE;
+            });
+            const [foamLinks, setFoamLinks] = React.useState(() => {
+                const saved = localStorage.getItem('bento_foam_links');
+                return saved ? JSON.parse(saved) : DEFAULT_FOAM_LINKS;
+            });
+            const [works, setWorks] = React.useState(() => {
+                const saved = localStorage.getItem('bento_works');
+                return saved ? JSON.parse(saved) : DEFAULT_WORKS;
+            });
+            const [skills, setSkills] = React.useState(() => {
+                const saved = localStorage.getItem('bento_skills');
+                return saved ? JSON.parse(saved) : DEFAULT_SKILLS;
+            });
+            const [messages, setMessages] = React.useState([]);
+
+            // UI Filter & Player States
             const [searchQuery, setSearchQuery] = React.useState('');
-            const [selectedCategory, setSelectedCategory] = React.useState('All');
-            
-            // Audio Player Widget Simulation State
+            const [selectedLinkCategory, setSelectedLinkCategory] = React.useState('All');
+            const [selectedWorkFilter, setSelectedWorkFilter] = React.useState('all');
             const [isPlayingAudio, setIsPlayingAudio] = React.useState(false);
-            
-            // Modal States
+            const [toastMessage, setToastMessage] = React.useState('');
+
+            // Modals States (Semua Elemen Memiliki Modal Edit)
             const [isAdminLoggedIn, setIsAdminLoggedIn] = React.useState(false);
             const [showLoginModal, setShowLoginModal] = React.useState(false);
-            const [showAddLinkModal, setShowAddLinkModal] = React.useState(false);
-            const [showAddProjectModal, setShowAddProjectModal] = React.useState(false);
+            const [showProfileModal, setShowProfileModal] = React.useState(false);
+            const [showStatusModal, setShowStatusModal] = React.useState(false);
+            const [showQuoteModal, setShowQuoteModal] = React.useState(false);
+            const [showAudioModal, setShowAudioModal] = React.useState(false);
+            const [showSpotlightModal, setShowSpotlightModal] = React.useState(false);
+            const [showSkillsModal, setShowSkillsModal] = React.useState(false);
+            const [showContactEditModal, setShowContactEditModal] = React.useState(false);
+            
+            const [showLinkModal, setShowLinkModal] = React.useState(false);
+            const [editingLink, setEditingLink] = React.useState(null);
+            
+            const [showWorkModal, setShowWorkModal] = React.useState(false);
+            const [editingWork, setEditingWork] = React.useState(null);
+            const [activeArticleModal, setActiveArticleModal] = React.useState(null);
 
-            // Form inputs
+            // Form Temp States
             const [loginForm, setLoginForm] = React.useState({ username: '', password: '' });
-            const [newLinkForm, setNewLinkForm] = React.useState({ title: '', category: 'Social Media', icon: 'link', url: '', description: '' });
-            const [newProjectForm, setNewProjectForm] = React.useState({ title: '', subtitle: '', category: 'UI/UX', description: '', image: '', tags: '' });
+            const [profileForm, setProfileForm] = React.useState(profile);
+            const [statusForm, setStatusForm] = React.useState({ availableForHire: profile.availableForHire, statusTitle: profile.statusTitle, statusBadge: profile.statusBadge, statusDesc: profile.statusDesc });
+            const [quoteForm, setQuoteForm] = React.useState({ quote: profile.quote, quoteSub: profile.quoteSub, author: profile.author });
+            const [audioForm, setAudioForm] = React.useState({ audioTitle: profile.audioTitle, audioEp: profile.audioEp, audioCoverTag: profile.audioCoverTag });
+            const [spotlightForm, setSpotlightForm] = React.useState({ spotlightBadge: profile.spotlightBadge, spotlightTitle: profile.spotlightTitle, spotlightDesc: profile.spotlightDesc });
+            const [skillsListForm, setSkillsListForm] = React.useState([...skills]);
+            const [contactEditForm, setContactEditForm] = React.useState({ contactTitle: profile.contactTitle, contactDesc: profile.contactDesc });
+            
+            const [linkForm, setLinkForm] = React.useState({ title: '', category: 'Social Media', icon: 'link', url: '', description: '', isFeatured: false });
+            const [workForm, setWorkForm] = React.useState({ workType: 'image', title: '', subtitle: '', category: 'Visual Work', description: '', fullContent: '', image: '', tags: '', demoUrl: '' });
             const [contactForm, setContactForm] = React.useState({ name: '', email: '', subject: '', message: '' });
-            const [contactSubmitted, setContactSubmitted] = React.useState(false);
 
-            // Initialize Lucide Icons
+            // Simpan perubahan ke LocalStorage
+            React.useEffect(() => { localStorage.setItem('bento_profile', JSON.stringify(profile)); }, [profile]);
+            React.useEffect(() => { localStorage.setItem('bento_foam_links', JSON.stringify(foamLinks)); }, [foamLinks]);
+            React.useEffect(() => { localStorage.setItem('bento_works', JSON.stringify(works)); }, [works]);
+            React.useEffect(() => { localStorage.setItem('bento_skills', JSON.stringify(skills)); }, [skills]);
+
+            // Sync icon rendering
             React.useEffect(() => {
-                if (window.lucide) {
-                    window.lucide.createIcons();
-                }
-            }, [activeTab, foamLinks, projects, isAdminLoggedIn]);
+                if (window.lucide) window.lucide.createIcons();
+            }, [activeTab, foamLinks, works, skills, profile, isAdminLoggedIn, selectedLinkCategory, selectedWorkFilter]);
 
-            // Handlers
+            const showToast = (msg) => {
+                setToastMessage(msg);
+                setTimeout(() => setToastMessage(''), 3000);
+            };
+
+            // ---------------- HANDLERS EDITABLE SEKSIONAL ----------------
+            const handleSaveProfile = (e) => {
+                e.preventDefault();
+                setProfile(prev => ({ ...prev, ...profileForm }));
+                setShowProfileModal(false);
+                showToast('👤 Profil Utama Berhasil Diperbarui!');
+            };
+
+            const handleSaveStatus = (e) => {
+                e.preventDefault();
+                setProfile(prev => ({ ...prev, ...statusForm }));
+                setShowStatusModal(false);
+                showToast('✨ Status Proyek & Availability Diperbarui!');
+            };
+
+            const handleSaveQuote = (e) => {
+                e.preventDefault();
+                setProfile(prev => ({ ...prev, ...quoteForm }));
+                setShowQuoteModal(false);
+                showToast('💬 Quote Inspiratif Diperbarui!');
+            };
+
+            const handleSaveAudio = (e) => {
+                e.preventDefault();
+                setProfile(prev => ({ ...prev, ...audioForm }));
+                setShowAudioModal(false);
+                showToast('🎙️ Audio Podcast Widget Diperbarui!');
+            };
+
+            const handleSaveSpotlight = (e) => {
+                e.preventDefault();
+                setProfile(prev => ({ ...prev, ...spotlightForm }));
+                setShowSpotlightModal(false);
+                showToast('🔥 Spotlight Bio Hub Diperbarui!');
+            };
+
+            const handleSaveSkills = (e) => {
+                e.preventDefault();
+                setSkills(skillsListForm);
+                setShowSkillsModal(false);
+                showToast('📊 List Keahlian/Skills Diperbarui!');
+            };
+
+            const handleAddSkillItem = () => {
+                setSkillsListForm([...skillsListForm, { id: Date.now(), name: "Skill Baru", percentage: 80 }]);
+            };
+
+            const handleRemoveSkillItem = (id) => {
+                setSkillsListForm(skillsListForm.filter(s => s.id !== id));
+            };
+
+            const handleSaveContactEdit = (e) => {
+                e.preventDefault();
+                setProfile(prev => ({ ...prev, ...contactEditForm }));
+                setShowContactEditModal(false);
+                showToast('✉️ Teks Halaman Kontak Diperbarui!');
+            };
+
+            // ---------------- HANDLERS FOAM LINK & WORKS ----------------
             const handleLinkClick = (id, url) => {
                 setFoamLinks(prev => prev.map(item => item.id === id ? { ...item, clicks: item.clicks + 1 } : item));
                 window.open(url, '_blank');
+            };
+
+            const handleCopyLink = (e, url) => {
+                e.stopPropagation();
+                navigator.clipboard.writeText(url);
+                showToast('📋 Tautan berhasil disalin!');
+            };
+
+            const handleSaveLink = (e) => {
+                e.preventDefault();
+                if (editingLink) {
+                    setFoamLinks(foamLinks.map(item => item.id === editingLink.id ? { ...linkForm, id: editingLink.id, clicks: editingLink.clicks } : item));
+                    showToast('✅ Foam Link berhasil diperbarui!');
+                } else {
+                    const newLink = { ...linkForm, id: Date.now(), clicks: 0 };
+                    setFoamLinks([newLink, ...foamLinks]);
+                    showToast('✨ Foam Link baru ditambahkan!');
+                }
+                setShowLinkModal(false);
+                setEditingLink(null);
+            };
+
+            const handleDeleteLink = (id) => {
+                setFoamLinks(foamLinks.filter(item => item.id !== id));
+                showToast('🗑️ Foam Link telah dihapus.');
+            };
+
+            const handleSaveWork = (e) => {
+                e.preventDefault();
+                const processedTags = typeof workForm.tags === 'string' ? workForm.tags.split(',').map(t => t.trim()) : workForm.tags;
+                if (editingWork) {
+                    setWorks(works.map(item => item.id === editingWork.id ? { ...workForm, tags: processedTags, id: editingWork.id } : item));
+                    showToast('✅ Karya/Artikel diperbarui!');
+                } else {
+                    const newWork = { ...workForm, tags: processedTags, id: Date.now() };
+                    setWorks([newWork, ...works]);
+                    showToast('🎨 Karya baru ditambahkan!');
+                }
+                setShowWorkModal(false);
+                setEditingWork(null);
+            };
+
+            const handleDeleteWork = (id) => {
+                setWorks(works.filter(item => item.id !== id));
+                showToast('🗑️ Karya telah dihapus.');
             };
 
             const handleLoginSubmit = (e) => {
@@ -200,208 +341,147 @@
                 if (loginForm.username === 'admin' && (loginForm.password === 'edudigital' || loginForm.password === 'admin2026')) {
                     setIsAdminLoggedIn(true);
                     setShowLoginModal(false);
-                    setActiveTab('admin');
-                    alert('Login Admin Berhasil!');
+                    showToast('🔓 Login Admin Berhasil! Mode Edit Aktif.');
                 } else {
-                    alert('Username atau Password salah! (Default: admin / edudigital)');
+                    showToast('❌ Username/Password Salah!');
                 }
-            };
-
-            const handleAddFoamLink = (e) => {
-                e.preventDefault();
-                const newEntry = {
-                    id: Date.now(),
-                    ...newLinkForm,
-                    clicks: 0
-                };
-                setFoamLinks([newEntry, ...foamLinks]);
-                setNewLinkForm({ title: '', category: 'Social Media', icon: 'link', url: '', description: '' });
-                setShowAddLinkModal(false);
-                alert('Foam Link Baru Berhasil Ditambahkan!');
-            };
-
-            const handleAddProject = (e) => {
-                e.preventDefault();
-                const newProj = {
-                    id: Date.now(),
-                    ...newProjectForm,
-                    tags: newProjectForm.tags.split(',').map(t => t.trim())
-                };
-                setProjects([newProj, ...projects]);
-                setNewProjectForm({ title: '', subtitle: '', category: 'UI/UX', description: '', image: '', tags: '' });
-                setShowAddProjectModal(false);
-                alert('Proyek Portofolio Berhasil Ditambahkan!');
             };
 
             const handleContactSubmit = (e) => {
                 e.preventDefault();
-                const newMessage = {
-                    id: Date.now(),
-                    ...contactForm,
-                    text: contactForm.message,
-                    date: new Date().toISOString().split('T')[0]
-                };
-                setMessages([newMessage, ...messages]);
-                setContactSubmitted(true);
-                setTimeout(() => setContactSubmitted(false), 4000);
+                const newMsg = { id: Date.now(), ...contactForm, date: new Date().toISOString().split('T')[0] };
+                setMessages([newMsg, ...messages]);
                 setContactForm({ name: '', email: '', subject: '', message: '' });
+                showToast('📬 Pesan Anda berhasil dikirim ke Admin!');
             };
 
-            // Filtered Links
-            const filteredLinks = foamLinks.filter(link => {
-                const matchesSearch = link.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                                      link.description.toLowerCase().includes(searchQuery.toLowerCase());
-                const matchesCat = selectedCategory === 'All' || link.category === selectedCategory;
-                return matchesSearch && matchesCat;
+            // Filter Process
+            const filteredLinks = foamLinks.filter(l => {
+                const matchSearch = l.title.toLowerCase().includes(searchQuery.toLowerCase()) || l.description.toLowerCase().includes(searchQuery.toLowerCase());
+                const matchCat = selectedLinkCategory === 'All' || l.category === selectedLinkCategory;
+                return matchSearch && matchCat;
+            });
+
+            const filteredWorks = works.filter(w => {
+                if (selectedWorkFilter === 'all') return true;
+                return w.workType === selectedWorkFilter;
             });
 
             return (
                 <div className="flex min-h-screen relative p-3 md:p-6 gap-4 md:gap-6 max-w-[1440px] mx-auto">
                     
-                    {/* ----------------- 1. FLOATING SIDEBAR NAVIGATION (LEFT PILL) ----------------- */}
-                    <aside className="fixed left-3 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center gap-5 py-6 px-3 bg-white/80 backdrop-blur-xl border border-white/80 rounded-full shadow-lg shadow-peach-700/10 text-[#8C7A76]">
-                        {/* Profile Avatar */}
-                        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-peach-400 cursor-pointer shadow-sm" onClick={() => setActiveTab('home')}>
-                            <img src={profile.avatar} alt="Profile" className="w-full h-full object-cover" />
+                    {/* TOAST NOTIFICATION */}
+                    {toastMessage && (
+                        <div className="fixed top-5 right-5 z-50 bg-[#3D2B27] text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 animate-bounce">
+                            <span>{toastMessage}</span>
                         </div>
+                    )}
 
-                        <div className="w-8 h-[1px] bg-peach-200 my-1"></div>
-
-                        {/* Navigation Items */}
-                        <button 
-                            onClick={() => setActiveTab('home')} 
-                            className={`p-3 rounded-full transition-all ${activeTab === 'home' ? 'bg-peach-500 text-white shadow-md shadow-peach-500/30' : 'hover:bg-peach-100 hover:text-peach-700'}`}
-                            title="Home / Bento Dashboard"
-                        >
+                    {/* FLOATING SIDEBAR NAVIGATION (DESKTOP) */}
+                    <aside className="fixed left-3 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center gap-4 py-6 px-3 bg-white/80 backdrop-blur-xl border border-white/80 rounded-full shadow-lg text-[#8C7A76]">
+                        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-peach-400 cursor-pointer shadow-sm hover:scale-105 transition-transform" onClick={() => setActiveTab('home')}>
+                            <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="w-8 h-[1px] bg-peach-200 my-0.5"></div>
+                        <button onClick={() => setActiveTab('home')} className={`p-3 rounded-full transition-all ${activeTab === 'home' ? 'bg-peach-500 text-white shadow-md' : 'hover:bg-peach-100'}`} title="Dashboard Home">
                             <i data-lucide="layout-grid" className="w-5 h-5"></i>
                         </button>
-
-                        <button 
-                            onClick={() => setActiveTab('foam-links')} 
-                            className={`p-3 rounded-full transition-all relative ${activeTab === 'foam-links' ? 'bg-peach-500 text-white shadow-md shadow-peach-500/30' : 'hover:bg-peach-100 hover:text-peach-700'}`}
-                            title="Foam Links (Bio & Socials)"
-                        >
+                        <button onClick={() => setActiveTab('foam-links')} className={`p-3 rounded-full transition-all relative ${activeTab === 'foam-links' ? 'bg-peach-500 text-white shadow-md' : 'hover:bg-peach-100'}`} title="Foam Links Hub">
                             <i data-lucide="link-2" className="w-5 h-5"></i>
-                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-peach-500 border-2 border-white rounded-full"></span>
+                            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-peach-500 border-2 border-white rounded-full"></span>
                         </button>
-
-                        <button 
-                            onClick={() => setActiveTab('projects')} 
-                            className={`p-3 rounded-full transition-all ${activeTab === 'projects' ? 'bg-peach-500 text-white shadow-md shadow-peach-500/30' : 'hover:bg-peach-100 hover:text-peach-700'}`}
-                            title="Portofolio Projects"
-                        >
-                            <i data-lucide="briefcase" className="w-5 h-5"></i>
+                        <button onClick={() => setActiveTab('works')} className={`p-3 rounded-full transition-all ${activeTab === 'works' ? 'bg-peach-500 text-white shadow-md' : 'hover:bg-peach-100'}`} title="Hasil Karya (Gambar & Teks)">
+                            <i data-lucide="folder-git-2" className="w-5 h-5"></i>
                         </button>
-
-                        <button 
-                            onClick={() => setActiveTab('contact')} 
-                            className={`p-3 rounded-full transition-all ${activeTab === 'contact' ? 'bg-peach-500 text-white shadow-md shadow-peach-500/30' : 'hover:bg-peach-100 hover:text-peach-700'}`}
-                            title="Contact Me"
-                        >
+                        <button onClick={() => setActiveTab('contact')} className={`p-3 rounded-full transition-all ${activeTab === 'contact' ? 'bg-peach-500 text-white shadow-md' : 'hover:bg-peach-100'}`} title="Kontak / Pesan">
                             <i data-lucide="mail" className="w-5 h-5"></i>
                         </button>
-
-                        <div className="w-8 h-[1px] bg-peach-200 my-1"></div>
-
-                        {/* Admin / Settings */}
-                        <button 
-                            onClick={() => isAdminLoggedIn ? setActiveTab('admin') : setShowLoginModal(true)} 
-                            className={`p-3 rounded-full transition-all ${isAdminLoggedIn ? 'bg-emerald-500 text-white' : 'hover:bg-peach-100 hover:text-peach-700'}`}
-                            title={isAdminLoggedIn ? "Admin Dashboard" : "Admin Login"}
-                        >
+                        <div className="w-8 h-[1px] bg-peach-200 my-0.5"></div>
+                        <button onClick={() => isAdminLoggedIn ? setActiveTab('admin') : setShowLoginModal(true)} className={`p-3 rounded-full transition-all ${isAdminLoggedIn ? 'bg-emerald-500 text-white' : 'hover:bg-peach-100'}`} title={isAdminLoggedIn ? "Panel Admin Active" : "Login Admin"}>
                             <i data-lucide={isAdminLoggedIn ? "user-check" : "lock"} className="w-5 h-5"></i>
                         </button>
                     </aside>
 
-                    {/* MOBILE NAVBAR BOTTOM PILL */}
-                    <nav className="md:hidden fixed bottom-3 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 py-2 px-5 bg-white/90 backdrop-blur-xl border border-white/90 rounded-full shadow-xl shadow-peach-900/10 text-[#8C7A76]">
-                        <button onClick={() => setActiveTab('home')} className={`p-2 rounded-full ${activeTab === 'home' ? 'bg-peach-500 text-white' : ''}`}>
-                            <i data-lucide="layout-grid" className="w-5 h-5"></i>
-                        </button>
-                        <button onClick={() => setActiveTab('foam-links')} className={`p-2 rounded-full ${activeTab === 'foam-links' ? 'bg-peach-500 text-white' : ''}`}>
-                            <i data-lucide="link-2" className="w-5 h-5"></i>
-                        </button>
-                        <button onClick={() => setActiveTab('projects')} className={`p-2 rounded-full ${activeTab === 'projects' ? 'bg-peach-500 text-white' : ''}`}>
-                            <i data-lucide="briefcase" className="w-5 h-5"></i>
-                        </button>
-                        <button onClick={() => setActiveTab('contact')} className={`p-2 rounded-full ${activeTab === 'contact' ? 'bg-peach-500 text-white' : ''}`}>
-                            <i data-lucide="mail" className="w-5 h-5"></i>
-                        </button>
-                        <button onClick={() => isAdminLoggedIn ? setActiveTab('admin') : setShowLoginModal(true)} className={`p-2 rounded-full ${isAdminLoggedIn ? 'bg-emerald-500 text-white' : ''}`}>
-                            <i data-lucide={isAdminLoggedIn ? "user-check" : "lock"} className="w-5 h-5"></i>
-                        </button>
+                    {/* MOBILE NAVBAR BOTTOM */}
+                    <nav className="md:hidden fixed bottom-3 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 py-2.5 px-5 bg-white/90 backdrop-blur-xl border border-white/90 rounded-full shadow-xl text-[#8C7A76]">
+                        <button onClick={() => setActiveTab('home')} className={`p-2 rounded-full ${activeTab === 'home' ? 'bg-peach-500 text-white' : ''}`}><i data-lucide="layout-grid" className="w-5 h-5"></i></button>
+                        <button onClick={() => setActiveTab('foam-links')} className={`p-2 rounded-full ${activeTab === 'foam-links' ? 'bg-peach-500 text-white' : ''}`}><i data-lucide="link-2" className="w-5 h-5"></i></button>
+                        <button onClick={() => setActiveTab('works')} className={`p-2 rounded-full ${activeTab === 'works' ? 'bg-peach-500 text-white' : ''}`}><i data-lucide="folder-git-2" className="w-5 h-5"></i></button>
+                        <button onClick={() => setActiveTab('contact')} className={`p-2 rounded-full ${activeTab === 'contact' ? 'bg-peach-500 text-white' : ''}`}><i data-lucide="mail" className="w-5 h-5"></i></button>
+                        <button onClick={() => isAdminLoggedIn ? setActiveTab('admin') : setShowLoginModal(true)} className={`p-2 rounded-full ${isAdminLoggedIn ? 'bg-emerald-500 text-white' : ''}`}><i data-lucide={isAdminLoggedIn ? "user-check" : "lock"} className="w-5 h-5"></i></button>
                     </nav>
 
-                    {/* ----------------- MAIN CONTENT WRAPPER ----------------- */}
+                    {/* MAIN CONTENT CONTAINER */}
                     <main className="flex-1 md:ml-20 flex flex-col gap-6 pb-20 md:pb-6">
                         
-                        {/* TOP HEADER SECTION */}
+                        {/* HEADER PROFILE BAR (EDITABLE) */}
                         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2">
-                            <div>
-                                <span className="text-xs font-semibold tracking-wider text-peach-600 uppercase bg-peach-100 px-3 py-1 rounded-full border border-peach-200">
-                                    8月7日 星期四 · Today's Portfolio
-                                </span>
+                            <div className="relative group">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-xs font-semibold tracking-wider text-peach-600 uppercase bg-peach-100 px-3 py-1 rounded-full border border-peach-200">
+                                        Personal Portfolio & Bio Hub
+                                    </span>
+                                    {isAdminLoggedIn && (
+                                        <button onClick={() => { setProfileForm(profile); setShowProfileModal(true); }} className="text-xs font-bold bg-amber-500 text-white px-2.5 py-1 rounded-full hover:bg-amber-600 flex items-center gap-1 shadow-sm">
+                                            <i data-lucide="edit-3" className="w-3.5 h-3.5"></i> Edit Header & Profile
+                                        </button>
+                                    )}
+                                </div>
                                 <h1 className="font-serif font-bold text-3xl md:text-5xl text-[#3D2B27] mt-2 tracking-tight">
                                     {profile.greeting}
                                 </h1>
-                                <p className="text-sm text-[#8C7A76] mt-1 flex items-center gap-1.5">
-                                    <span>{profile.subgreeting}</span>
-                                    <span className="inline-block w-2 h-2 rounded-full bg-peach-500 animate-pulse"></span>
+                                <p className="text-xs md:text-sm text-[#8C7A76] mt-1 flex items-center gap-2">
+                                    <span className="font-semibold text-[#3D2B27]">{profile.name}</span>
+                                    <span>·</span>
+                                    <span>{profile.role}</span>
                                 </p>
                             </div>
 
-                            {/* Weather & Quick Status Badge */}
-                            <div className="flex items-center gap-3">
+                            {/* Weather Card */}
+                            <div className="flex items-center gap-3 relative">
                                 <div className="glass-card px-4 py-2.5 rounded-2xl flex items-center gap-3 text-xs">
                                     <div className="w-8 h-8 rounded-full bg-orange-100 text-peach-600 flex items-center justify-center">
                                         <i data-lucide="sun" className="w-4 h-4"></i>
                                     </div>
                                     <div>
-                                        <div className="font-bold text-sm text-[#3D2B27]">26°C · {profile.location.split('/')[0]}</div>
+                                        <div className="font-bold text-sm text-[#3D2B27]">{profile.location}</div>
                                         <div className="text-[#8C7A76] text-[11px]">{profile.weather}</div>
                                     </div>
                                 </div>
-
-                                <button 
-                                    onClick={() => setActiveTab('foam-links')}
-                                    className="p-3 bg-white/80 hover:bg-white rounded-2xl border border-white/80 text-[#3D2B27] shadow-sm transition-all"
-                                    title="Quick Search Links"
-                                >
-                                    <i data-lucide="search" className="w-4 h-4"></i>
-                                </button>
                             </div>
                         </header>
 
-                        {/* QUICK SEARCH INPUT BAR */}
+                        {/* SEARCH BAR */}
                         <div className="glass-card p-2 rounded-2xl flex items-center gap-3 border border-white/90">
                             <i data-lucide="sparkles" className="w-5 h-5 text-peach-500 ml-3"></i>
                             <input 
                                 type="text" 
-                                placeholder="Cari foam link, proyek, keahlian, atau media sosial..." 
+                                placeholder="Cari foam link, karya gambar, atau artikel naskah..." 
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-transparent border-none text-sm text-[#3D2B27] placeholder-[#a4938f] focus:outline-none"
+                                className="w-full bg-transparent border-none text-xs md:text-sm text-[#3D2B27] placeholder-[#a4938f] focus:outline-none"
                             />
                             {searchQuery && (
-                                <button onClick={() => setSearchQuery('')} className="p-1 hover:bg-peach-100 rounded-full mr-2">
+                                <button onClick={() => setSearchQuery('')} className="p-1 hover:bg-peach-100 rounded-full mr-1">
                                     <i data-lucide="x" className="w-4 h-4 text-[#8C7A76]"></i>
                                 </button>
                             )}
-                            <button 
-                                onClick={() => setActiveTab('foam-links')} 
-                                className="bg-peach-500 hover:bg-peach-600 text-white p-2.5 rounded-xl flex items-center justify-center transition-all shadow-md shadow-peach-500/20"
-                            >
+                            <button onClick={() => setActiveTab('foam-links')} className="bg-peach-500 hover:bg-peach-600 text-white p-2.5 rounded-xl flex items-center justify-center transition-all shadow-md">
                                 <i data-lucide="arrow-right" className="w-4 h-4"></i>
                             </button>
                         </div>
 
-                        {/* ----------------- TAB 1: HOME (BENTO GRID DASHBOARD) ----------------- */}
+                        {/* ---------------- TAB 1: BENTO DASHBOARD (HOME) ---------------- */}
                         {activeTab === 'home' && (
                             <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
                                 
-                                {/* 1. QUOTE & PHILOSOPHY CARD (4 cols) */}
-                                <div className="md:col-span-4 glass-card p-6 rounded-3xl flex flex-col justify-between relative overflow-hidden group">
-                                    <div className="absolute top-4 right-4 text-peach-200 text-6xl font-serif font-bold leading-none select-none">“</div>
+                                {/* 1. QUOTE CARD (EDITABLE) */}
+                                <div className="md:col-span-4 glass-card p-6 rounded-3xl flex flex-col justify-between relative group">
+                                    {isAdminLoggedIn && (
+                                        <button onClick={() => { setQuoteForm({ quote: profile.quote, quoteSub: profile.quoteSub, author: profile.author }); setShowQuoteModal(true); }} className="absolute top-3 right-3 z-10 p-2 bg-amber-500 text-white rounded-xl shadow-md hover:bg-amber-600">
+                                            <i data-lucide="edit-3" className="w-3.5 h-3.5"></i>
+                                        </button>
+                                    )}
                                     <div>
                                         <div className="w-9 h-9 rounded-2xl bg-peach-100 text-peach-600 flex items-center justify-center mb-4">
                                             <i data-lucide="quote" className="w-4 h-4"></i>
@@ -415,198 +495,177 @@
                                     </div>
                                     <div className="mt-6 pt-4 border-t border-peach-200/50 flex items-center justify-between text-xs text-[#8C7A76]">
                                         <span className="font-medium text-[#3D2B27]">― {profile.author}</span>
-                                        <div className="flex items-center gap-2">
-                                            <button className="hover:text-peach-600 transition-colors"><i data-lucide="heart" className="w-4 h-4"></i></button>
-                                            <button className="hover:text-peach-600 transition-colors"><i data-lucide="share-2" className="w-4 h-4"></i></button>
-                                        </div>
+                                        <button onClick={() => setActiveTab('foam-links')} className="text-peach-600 font-bold hover:underline flex items-center gap-1">
+                                            Links <i data-lucide="arrow-up-right" className="w-3.5 h-3.5"></i>
+                                        </button>
                                     </div>
                                 </div>
 
-                                {/* 2. STATS & TRACK RECORD CARD (4 cols) */}
-                                <div className="md:col-span-4 glass-card p-6 rounded-3xl flex flex-col justify-between">
+                                {/* 2. STATUS CARD (EDITABLE) */}
+                                <div className="md:col-span-4 glass-card p-6 rounded-3xl flex flex-col justify-between relative group">
+                                    {isAdminLoggedIn && (
+                                        <button onClick={() => { setStatusForm({ availableForHire: profile.availableForHire, statusTitle: profile.statusTitle, statusBadge: profile.statusBadge, statusDesc: profile.statusDesc }); setShowStatusModal(true); }} className="absolute top-3 right-3 z-10 p-2 bg-amber-500 text-white rounded-xl shadow-md hover:bg-amber-600">
+                                            <i data-lucide="edit-3" className="w-3.5 h-3.5"></i>
+                                        </button>
+                                    )}
                                     <div className="flex items-center justify-between">
-                                        <span className="text-xs font-semibold text-[#8C7A76] uppercase tracking-wider">今日支出 / Status Ringkasan</span>
-                                        <i data-lucide="trending-up" className="w-4 h-4 text-peach-500"></i>
+                                        <span className="text-xs font-semibold text-[#8C7A76] uppercase tracking-wider">Status Proyek</span>
+                                        <i data-lucide="sparkles" className="w-4 h-4 text-peach-500"></i>
                                     </div>
                                     <div className="my-4">
-                                        <div className="font-serif font-bold text-4xl text-[#3D2B27]">
-                                            ¥ 0.00 <span className="text-xs font-sans font-normal text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Available</span>
+                                        <div className="font-serif font-bold text-3xl md:text-4xl text-[#3D2B27]">
+                                            {profile.statusTitle}{' '}
+                                            <span className={`text-xs font-sans font-normal px-2.5 py-1 rounded-full border ${profile.availableForHire ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 'text-rose-600 bg-rose-50 border-rose-200'}`}>
+                                                {profile.statusBadge}
+                                            </span>
                                         </div>
-                                        <div className="text-xs text-[#8C7A76] mt-1">Status Ketersediaan Proyek: Open for Freelance & Remote Work</div>
+                                        <p className="text-xs text-[#8C7A76] mt-2">{profile.statusDesc}</p>
                                     </div>
-                                    {/* SVG Wave Chart Simulation */}
-                                    <div className="w-full h-12">
-                                        <svg className="w-full h-full overflow-visible" viewBox="0 0 200 40">
-                                            <path d="M 0 30 Q 30 10, 60 25 T 120 15 T 180 28 L 200 20" fill="none" stroke="#e06d53" strokeWidth="3" strokeLinecap="round" />
-                                        </svg>
-                                    </div>
-                                </div>
-
-                                {/* 3. DAILY SKILL MASTERY RING (4 cols) */}
-                                <div className="md:col-span-4 glass-card p-6 rounded-3xl flex flex-col justify-between">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-xs font-semibold text-[#8C7A76] uppercase tracking-wider">今日学习 / Skill Focus</span>
-                                        <span className="text-xs font-bold text-peach-600">85% Mastery</span>
-                                    </div>
-                                    <div className="flex items-center gap-5 my-3">
-                                        <div className="relative w-20 h-20 flex items-center justify-center">
-                                            <svg className="w-full h-full transform -rotate-90">
-                                                <circle cx="40" cy="40" r="32" stroke="#f4d5c3" strokeWidth="6" fill="transparent" />
-                                                <circle cx="40" cy="40" r="32" stroke="#e06d53" strokeWidth="6" fill="transparent" strokeDasharray="200" strokeDashoffset="40" strokeLinecap="round" />
-                                            </svg>
-                                            <span className="absolute text-sm font-bold text-[#3D2B27]">85%</span>
-                                        </div>
-                                        <div className="space-y-1 text-xs">
-                                            <div className="flex items-center gap-2">
-                                                <span className="w-2 h-2 rounded-full bg-peach-500"></span>
-                                                <span className="text-[#8C7A76]">UI/UX Design: <b className="text-[#3D2B27]">92%</b></span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                                                <span className="text-[#8C7A76]">Frontend Dev: <b className="text-[#3D2B27]">88%</b></span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="w-2 h-2 rounded-full bg-orange-300"></span>
-                                                <span className="text-[#8C7A76]">GAS Integration: <b className="text-[#3D2B27]">80%</b></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <button 
-                                        onClick={() => setActiveTab('projects')}
-                                        className="w-full py-2 bg-peach-100 hover:bg-peach-200 text-peach-700 text-xs font-semibold rounded-xl transition-colors text-center"
-                                    >
-                                        Lihat Portofolio Lengkap
+                                    <button onClick={() => setActiveTab('contact')} className="w-full py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all text-center">
+                                        Hubungi Saya Sekarang
                                     </button>
                                 </div>
 
-                                {/* 4. FEATURED ARTICLE / SHOWCASE CARD (6 cols) */}
-                                <div className="md:col-span-6 glass-card p-6 rounded-3xl flex flex-col md:flex-row gap-6 items-center">
-                                    <div className="flex-1 space-y-3">
-                                        <span className="text-[11px] font-bold tracking-wider text-peach-600 uppercase bg-peach-100 px-2.5 py-0.5 rounded-md">
-                                            Featured Article
-                                        </span>
-                                        <h3 className="font-serif font-bold text-xl text-[#3D2B27] leading-snug">
-                                            从极简主义到情感化设计, 界面正在回归真实体验
-                                        </h3>
-                                        <p className="text-xs text-[#8C7A76] line-clamp-2 leading-relaxed">
-                                            Mengapa antarmuka web modern kembali mengadopsi elemen tekstur hangat, neomorfik halus, dan desain bento grid intuitif.
-                                        </p>
-                                        <button 
-                                            onClick={() => setActiveTab('projects')}
-                                            className="inline-flex items-center gap-2 text-xs font-bold text-peach-600 hover:text-peach-700 pt-1"
-                                        >
-                                            Baca Selengkapnya <i data-lucide="arrow-right" className="w-3.5 h-3.5"></i>
+                                {/* 3. SKILLS MASTERY WIDGET (EDITABLE LIST) */}
+                                <div className="md:col-span-4 glass-card p-6 rounded-3xl flex flex-col justify-between relative group">
+                                    {isAdminLoggedIn && (
+                                        <button onClick={() => { setSkillsListForm([...skills]); setShowSkillsModal(true); }} className="absolute top-3 right-3 z-10 p-2 bg-amber-500 text-white rounded-xl shadow-md hover:bg-amber-600">
+                                            <i data-lucide="edit-3" className="w-3.5 h-3.5"></i>
                                         </button>
+                                    )}
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs font-semibold text-[#8C7A76] uppercase tracking-wider">Keahlian Utama</span>
+                                        <span className="text-xs font-bold text-peach-600">
+                                            {Math.round(skills.reduce((a,b)=>a+Number(b.percentage),0) / (skills.length || 1))}% Avg
+                                        </span>
                                     </div>
-                                    <div className="w-full md:w-44 h-36 rounded-2xl overflow-hidden shadow-inner flex-shrink-0">
-                                        <img 
-                                            src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80" 
-                                            alt="Sunset Soft" 
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                        />
+                                    <div className="space-y-3 my-2">
+                                        {skills.map((s) => (
+                                            <div key={s.id} className="space-y-1">
+                                                <div className="flex justify-between text-xs">
+                                                    <span className="font-semibold text-[#3D2B27]">{s.name}</span>
+                                                    <span className="text-[#8C7A76]">{s.percentage}%</span>
+                                                </div>
+                                                <div className="w-full bg-peach-100 h-2 rounded-full overflow-hidden">
+                                                    <div className="bg-peach-500 h-full rounded-full transition-all duration-500" style={{ width: `${s.percentage}%` }}></div>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
+                                    <button onClick={() => setActiveTab('works')} className="w-full py-2 bg-peach-100 hover:bg-peach-200 text-peach-700 text-xs font-semibold rounded-xl transition-colors text-center mt-2">
+                                        Lihat Portofolio Karya
+                                    </button>
                                 </div>
 
-                                {/* 5. PODCAST / AUDIO WIDGET ("Design Better") (3 cols) */}
-                                <div className="md:col-span-3 glass-card p-5 rounded-3xl flex flex-col justify-between">
-                                    <div className="text-xs font-semibold text-[#8C7A76] uppercase">播客推荐 / Audio Log</div>
+                                {/* 4. SPOTLIGHT FOAM LINK BANNER (EDITABLE) */}
+                                <div className="md:col-span-8 glass-card p-6 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 bg-gradient-to-r from-white/90 via-peach-50/70 to-amber-50/70 border-2 border-peach-300/60 relative group">
+                                    {isAdminLoggedIn && (
+                                        <button onClick={() => { setSpotlightForm({ spotlightBadge: profile.spotlightBadge, spotlightTitle: profile.spotlightTitle, spotlightDesc: profile.spotlightDesc }); setShowSpotlightModal(true); }} className="absolute top-3 right-3 z-10 p-2 bg-amber-500 text-white rounded-xl shadow-md hover:bg-amber-600">
+                                            <i data-lucide="edit-3" className="w-3.5 h-3.5"></i>
+                                        </button>
+                                    )}
+                                    <div className="space-y-2 text-left">
+                                        <span className="text-[10px] font-bold text-white bg-peach-500 px-3 py-1 rounded-full uppercase tracking-wider">
+                                            {profile.spotlightBadge}
+                                        </span>
+                                        <h3 className="font-serif font-bold text-2xl text-[#3D2B27]">
+                                            {profile.spotlightTitle}
+                                        </h3>
+                                        <p className="text-xs text-[#8C7A76]">
+                                            {profile.spotlightDesc}
+                                        </p>
+                                    </div>
+                                    <button 
+                                        onClick={() => setActiveTab('foam-links')}
+                                        className="px-6 py-3.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-2xl shadow-lg shadow-peach-500/30 whitespace-nowrap transition-all flex items-center gap-2 hover:scale-105"
+                                    >
+                                        Buka Foam Links Hub <i data-lucide="arrow-right" className="w-4 h-4"></i>
+                                    </button>
+                                </div>
+
+                                {/* 5. AUDIO PODCAST WIDGET (EDITABLE) */}
+                                <div className="md:col-span-4 glass-card p-5 rounded-3xl flex flex-col justify-between relative group">
+                                    {isAdminLoggedIn && (
+                                        <button onClick={() => { setAudioForm({ audioTitle: profile.audioTitle, audioEp: profile.audioEp, audioCoverTag: profile.audioCoverTag }); setShowAudioModal(true); }} className="absolute top-3 right-3 z-10 p-2 bg-amber-500 text-white rounded-xl shadow-md hover:bg-amber-600">
+                                            <i data-lucide="edit-3" className="w-3.5 h-3.5"></i>
+                                        </button>
+                                    )}
+                                    <div className="text-xs font-semibold text-[#8C7A76] uppercase">Audio Log / Podcast</div>
                                     <div className="flex items-center gap-3 my-2">
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-peach-500 to-amber-700 text-white flex items-center justify-center font-bold text-xs shadow-md">
-                                            Design<br/>Better
+                                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-peach-500 to-amber-700 text-white flex items-center justify-center font-bold text-xs shadow-md">
+                                            {profile.audioCoverTag}
                                         </div>
                                         <div>
-                                            <div className="font-bold text-sm text-[#3D2B27]">Design Better</div>
-                                            <div className="text-xs text-[#8C7A76]">EP97 · Antarmuka Hangat</div>
+                                            <div className="font-bold text-sm text-[#3D2B27]">{profile.audioTitle}</div>
+                                            <div className="text-xs text-[#8C7A76]">{profile.audioEp}</div>
                                         </div>
-                                        <button 
-                                            onClick={() => setIsPlayingAudio(!isPlayingAudio)}
-                                            className="ml-auto w-10 h-10 rounded-full bg-peach-500 hover:bg-peach-600 text-white flex items-center justify-center shadow-lg shadow-peach-500/30 transition-all"
-                                        >
-                                            <i data-lucide={isPlayingAudio ? "pause" : "play"} className="w-4 h-4 fill-white ml-0.5"></i>
+                                        <button onClick={() => setIsPlayingAudio(!isPlayingAudio)} className="ml-auto w-10 h-10 rounded-full bg-peach-500 hover:bg-peach-600 text-white flex items-center justify-center shadow-lg transition-all">
+                                            <i data-lucide={isPlayingAudio ? "pause" : "play"} className="w-4 h-4 fill-white"></i>
                                         </button>
                                     </div>
-                                    {/* Progress Bar */}
                                     <div className="w-full bg-peach-200/60 h-1.5 rounded-full overflow-hidden">
                                         <div className={`bg-peach-500 h-full transition-all duration-300 ${isPlayingAudio ? 'w-2/3 animate-pulse' : 'w-1/3'}`}></div>
                                     </div>
                                 </div>
 
-                                {/* 6. FOAM LINKS PREVIEW CARD (3 cols) */}
-                                <div className="md:col-span-3 glass-card p-5 rounded-3xl flex flex-col justify-between border-2 border-peach-300/40">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-xs font-semibold text-[#8C7A76] uppercase tracking-wider">快速记事 / Foam Links</span>
-                                        <span className="text-[10px] bg-peach-500 text-white font-bold px-2 py-0.5 rounded-full">New</span>
-                                    </div>
-                                    <div className="my-3 space-y-2">
-                                        <div className="text-xs font-bold text-[#3D2B27] flex items-center gap-2">
-                                            <i data-lucide="link" className="w-3.5 h-3.5 text-peach-500"></i>
-                                            <span>Social Media & Bio Hub</span>
-                                        </div>
-                                        <p className="text-[11px] text-[#8C7A76]">
-                                            Akses semua tautan sosial media, daftar portofolio, dan kontak instan.
-                                        </p>
-                                    </div>
-                                    <button 
-                                        onClick={() => setActiveTab('foam-links')}
-                                        className="w-full py-2 bg-peach-500 hover:bg-peach-600 text-white text-xs font-semibold rounded-xl transition-all shadow-md shadow-peach-500/20 text-center flex items-center justify-center gap-1.5"
-                                    >
-                                        Buka Foam Links ({foamLinks.length}) <i data-lucide="external-link" className="w-3.5 h-3.5"></i>
-                                    </button>
-                                </div>
-
                             </div>
                         )}
 
-                        {/* ----------------- TAB 2: FOAM LINKS (SOCIAL & BIO HUB MENU) ----------------- */}
+                        {/* ---------------- TAB 2: FOAM LINKS HUB ---------------- */}
                         {activeTab === 'foam-links' && (
                             <div className="space-y-6">
-                                {/* Header Foam Links */}
                                 <div className="glass-card p-6 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                     <div>
                                         <span className="text-xs font-bold text-peach-600 bg-peach-100 px-3 py-1 rounded-full uppercase tracking-wider">
-                                            Link In Bio & Media Sosial
+                                            Interactive Bio & Link Hub
                                         </span>
                                         <h2 className="font-serif font-bold text-2xl md:text-3xl text-[#3D2B27] mt-2">
                                             Foam Links Hub 🫧
                                         </h2>
                                         <p className="text-xs text-[#8C7A76] mt-1">
-                                            Pusat tautan cepat untuk sosial media, pameran karya, dan layanan konsultasi.
+                                            Klik tautan di bawah ini untuk terhubung langsung dengan media sosial, karya, dan layanan saya.
                                         </p>
                                     </div>
 
                                     {isAdminLoggedIn && (
                                         <button 
-                                            onClick={() => setShowAddLinkModal(true)}
-                                            className="px-4 py-2.5 bg-peach-500 hover:bg-peach-600 text-white text-xs font-bold rounded-2xl shadow-lg shadow-peach-500/30 flex items-center gap-2 transition-all"
+                                            onClick={() => { setEditingLink(null); setLinkForm({ title: '', category: 'Social Media', icon: 'link', url: '', description: '', isFeatured: false }); setShowLinkModal(true); }}
+                                            className="px-4 py-2.5 bg-peach-500 hover:bg-peach-600 text-white text-xs font-bold rounded-2xl shadow-lg flex items-center gap-2"
                                         >
                                             <i data-lucide="plus-circle" className="w-4 h-4"></i> Tambah Foam Link
                                         </button>
                                     )}
                                 </div>
 
-                                {/* Filter Categories */}
+                                {/* CATEGORY FILTER CHIPS */}
                                 <div className="flex items-center gap-2 overflow-x-auto pb-1">
                                     {['All', 'Social Media', 'Design Showcase', 'Code', 'Services', 'Lifestyle'].map((cat) => (
                                         <button
                                             key={cat}
-                                            onClick={() => setSelectedCategory(cat)}
-                                            className={`px-4 py-2 rounded-2xl text-xs font-semibold whitespace-nowrap transition-all ${selectedCategory === cat ? 'bg-peach-500 text-white shadow-md shadow-peach-500/20' : 'glass-card text-[#8C7A76] hover:bg-white'}`}
+                                            onClick={() => setSelectedLinkCategory(cat)}
+                                            className={`px-4 py-2 rounded-2xl text-xs font-semibold whitespace-nowrap transition-all ${selectedLinkCategory === cat ? 'bg-peach-500 text-white shadow-md' : 'glass-card text-[#8C7A76] hover:bg-white'}`}
                                         >
                                             {cat}
                                         </button>
                                     ))}
                                 </div>
 
-                                {/* Foam Link Grid */}
+                                {/* FOAM LINKS GRID */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {filteredLinks.map((link) => (
                                         <div 
                                             key={link.id}
                                             onClick={() => handleLinkClick(link.id, link.url)}
-                                            className="glass-card p-5 rounded-3xl flex items-center justify-between gap-4 cursor-pointer hover:scale-[1.01] transition-all group"
+                                            className={`glass-card p-5 rounded-3xl flex items-center justify-between gap-4 cursor-pointer hover:scale-[1.015] transition-all group relative overflow-hidden ${link.isFeatured ? 'border-2 border-peach-400/80 bg-gradient-to-r from-white via-peach-50/50 to-white' : ''}`}
                                         >
+                                            {link.isFeatured && (
+                                                <span className="absolute top-0 right-0 bg-peach-500 text-white text-[9px] font-bold px-3 py-0.5 rounded-bl-xl uppercase tracking-wider">
+                                                    Featured
+                                                </span>
+                                            )}
+
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-2xl bg-peach-100 text-peach-600 flex items-center justify-center group-hover:bg-peach-500 group-hover:text-white transition-all shadow-sm">
+                                                <div className="w-12 h-12 rounded-2xl bg-peach-100 text-peach-600 flex items-center justify-center group-hover:bg-peach-500 group-hover:text-white transition-all shadow-sm flex-shrink-0">
                                                     <i data-lucide={link.icon || "link"} className="w-6 h-6"></i>
                                                 </div>
                                                 <div>
@@ -618,15 +677,32 @@
                                                             {link.category}
                                                         </span>
                                                     </div>
-                                                    <p className="text-xs text-[#8C7A76] mt-0.5">
+                                                    <p className="text-xs text-[#8C7A76] mt-0.5 line-clamp-1">
                                                         {link.description}
                                                     </p>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-[11px] font-medium text-[#8C7A76] bg-white/80 px-2.5 py-1 rounded-xl border border-peach-200/60">
-                                                    {link.clicks} clicks
-                                                </span>
+
+                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                                <button 
+                                                    onClick={(e) => handleCopyLink(e, link.url)} 
+                                                    className="p-2 hover:bg-peach-200 rounded-xl text-[#8C7A76] hover:text-peach-700 transition-colors"
+                                                    title="Salin Link"
+                                                >
+                                                    <i data-lucide="copy" className="w-4 h-4"></i>
+                                                </button>
+
+                                                {isAdminLoggedIn && (
+                                                    <div className="flex items-center gap-1 bg-white/90 p-1 rounded-xl border border-peach-200">
+                                                        <button onClick={(e) => { e.stopPropagation(); setEditingLink(link); setLinkForm(link); setShowLinkModal(true); }} className="p-1 hover:bg-amber-100 text-amber-700 rounded-lg">
+                                                            <i data-lucide="edit-2" className="w-3.5 h-3.5"></i>
+                                                        </button>
+                                                        <button onClick={(e) => { e.stopPropagation(); handleDeleteLink(link.id); }} className="p-1 hover:bg-rose-100 text-rose-700 rounded-lg">
+                                                            <i data-lucide="trash-2" className="w-3.5 h-3.5"></i>
+                                                        </button>
+                                                    </div>
+                                                )}
+
                                                 <div className="w-8 h-8 rounded-full bg-peach-100 text-peach-600 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
                                                     <i data-lucide="arrow-up-right" className="w-4 h-4"></i>
                                                 </div>
@@ -637,263 +713,467 @@
                             </div>
                         )}
 
-                        {/* ----------------- TAB 3: PROJECTS SHOWCASE ----------------- */}
-                        {activeTab === 'projects' && (
+                        {/* ---------------- TAB 3: WORKS SHOWCASE ---------------- */}
+                        {activeTab === 'works' && (
                             <div className="space-y-6">
                                 <div className="glass-card p-6 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                     <div>
                                         <span className="text-xs font-bold text-peach-600 bg-peach-100 px-3 py-1 rounded-full uppercase">
-                                            Karya & Proyek Pilihan
+                                            Portofolio Works & Articles
                                         </span>
                                         <h2 className="font-serif font-bold text-2xl md:text-3xl text-[#3D2B27] mt-2">
-                                            Portofolio Showcase 💼
+                                            Hasil Karya (Gambar & Teks) 🎨📝
                                         </h2>
+                                        <p className="text-xs text-[#8C7A76] mt-1">
+                                            Tampilan hasil karya desain visual serta artikel tulisan esai teknis.
+                                        </p>
                                     </div>
 
                                     {isAdminLoggedIn && (
                                         <button 
-                                            onClick={() => setShowAddProjectModal(true)}
-                                            className="px-4 py-2.5 bg-peach-500 hover:bg-peach-600 text-white text-xs font-bold rounded-2xl shadow-lg shadow-peach-500/30 flex items-center gap-2"
+                                            onClick={() => { setEditingWork(null); setWorkForm({ workType: 'image', title: '', subtitle: '', category: 'Visual Work', description: '', fullContent: '', image: '', tags: '', demoUrl: '' }); setShowWorkModal(true); }}
+                                            className="px-4 py-2.5 bg-peach-500 hover:bg-peach-600 text-white text-xs font-bold rounded-2xl shadow-lg flex items-center gap-2"
                                         >
-                                            <i data-lucide="plus-circle" className="w-4 h-4"></i> Tambah Proyek
+                                            <i data-lucide="plus-circle" className="w-4 h-4"></i> Tambah Karya Baru
                                         </button>
                                     )}
                                 </div>
 
+                                <div className="flex items-center gap-2">
+                                    <button onClick={() => setSelectedWorkFilter('all')} className={`px-4 py-2 rounded-2xl text-xs font-semibold ${selectedWorkFilter === 'all' ? 'bg-peach-500 text-white' : 'glass-card text-[#8C7A76]'}`}>
+                                        Semua Karya ({works.length})
+                                    </button>
+                                    <button onClick={() => setSelectedWorkFilter('image')} className={`px-4 py-2 rounded-2xl text-xs font-semibold ${selectedWorkFilter === 'image' ? 'bg-peach-500 text-white' : 'glass-card text-[#8C7A76]'}`}>
+                                        🖼️ Visual & Gambar ({works.filter(w=>w.workType==='image').length})
+                                    </button>
+                                    <button onClick={() => setSelectedWorkFilter('text')} className={`px-4 py-2 rounded-2xl text-xs font-semibold ${selectedWorkFilter === 'text' ? 'bg-peach-500 text-white' : 'glass-card text-[#8C7A76]'}`}>
+                                        📝 Artikel & Teks ({works.filter(w=>w.workType==='text').length})
+                                    </button>
+                                </div>
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {projects.map((proj) => (
-                                        <div key={proj.id} className="glass-card rounded-3xl overflow-hidden flex flex-col justify-between group">
-                                            <div className="h-48 overflow-hidden relative">
-                                                <img src={proj.image} alt={proj.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                                <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-md text-[#3D2B27] font-bold text-[10px] px-3 py-1 rounded-full shadow-sm">
-                                                    {proj.category}
-                                                </span>
-                                            </div>
-                                            <div className="p-6 flex-1 flex flex-col justify-between">
-                                                <div>
-                                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27] mb-1">{proj.title}</h3>
-                                                    <p className="text-xs font-medium text-peach-600 mb-2">{proj.subtitle}</p>
-                                                    <p className="text-xs text-[#8C7A76] leading-relaxed mb-4">{proj.description}</p>
+                                    {filteredWorks.map((work) => (
+                                        <div key={work.id} className="glass-card rounded-3xl overflow-hidden flex flex-col justify-between group relative">
+                                            {isAdminLoggedIn && (
+                                                <div className="absolute top-3 right-3 z-10 flex gap-1.5 bg-white/90 backdrop-blur-md p-1.5 rounded-2xl border border-peach-200 shadow-md">
+                                                    <button onClick={() => { setEditingWork(work); setWorkForm({ ...work, tags: work.tags.join(', ') }); setShowWorkModal(true); }} className="p-1.5 hover:bg-amber-100 text-amber-700 rounded-xl">
+                                                        <i data-lucide="edit-3" className="w-4 h-4"></i>
+                                                    </button>
+                                                    <button onClick={() => handleDeleteWork(work.id)} className="p-1.5 hover:bg-rose-100 text-rose-700 rounded-xl">
+                                                        <i data-lucide="trash-2" className="w-4 h-4"></i>
+                                                    </button>
                                                 </div>
+                                            )}
+
+                                            {work.workType === 'image' ? (
+                                                <div className="h-52 overflow-hidden relative">
+                                                    <img src={work.image || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80"} alt={work.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                    <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-md text-[#3D2B27] font-bold text-[10px] px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
+                                                        🖼️ Visual Showcase
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <div className="p-6 bg-gradient-to-br from-peach-100/80 to-amber-100/60 border-b border-peach-200/60 relative">
+                                                    <span className="bg-peach-500 text-white font-bold text-[10px] px-3 py-1 rounded-full shadow-sm flex items-center gap-1 w-max mb-2">
+                                                        📝 Artikel / Naskah Teks
+                                                    </span>
+                                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">{work.title}</h3>
+                                                </div>
+                                            )}
+
+                                            <div className="p-6 flex-1 flex flex-col justify-between space-y-3">
+                                                <div>
+                                                    {work.workType === 'image' && <h3 className="font-serif font-bold text-xl text-[#3D2B27] mb-1">{work.title}</h3>}
+                                                    <p className="text-xs font-semibold text-peach-600 mb-2">{work.subtitle}</p>
+                                                    <p className="text-xs text-[#8C7A76] leading-relaxed line-clamp-3">{work.description}</p>
+                                                </div>
+
                                                 <div className="pt-4 border-t border-peach-200/50 flex items-center justify-between">
-                                                    <div className="flex gap-1.5">
-                                                        {proj.tags.map((tag, idx) => (
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {work.tags.map((tag, idx) => (
                                                             <span key={idx} className="text-[10px] bg-peach-100 text-peach-700 font-semibold px-2 py-0.5 rounded-md">
                                                                 {tag}
                                                             </span>
                                                         ))}
                                                     </div>
-                                                    <a href={proj.demoUrl} target="_blank" className="text-xs font-bold text-peach-600 hover:text-peach-700 flex items-center gap-1">
-                                                        Lihat Detail <i data-lucide="external-link" className="w-3.5 h-3.5"></i>
-                                                    </a>
+
+                                                    {work.workType === 'text' ? (
+                                                        <button 
+                                                            onClick={() => setActiveArticleModal(work)} 
+                                                            className="text-xs font-bold text-peach-600 hover:text-peach-700 flex items-center gap-1 bg-peach-100 px-3 py-1.5 rounded-xl transition-colors"
+                                                        >
+                                                            Baca Naskah <i data-lucide="book-open" className="w-3.5 h-3.5"></i>
+                                                        </button>
+                                                    ) : (
+                                                        work.demoUrl && (
+                                                            <a href={work.demoUrl} target="_blank" className="text-xs font-bold text-peach-600 hover:text-peach-700 flex items-center gap-1">
+                                                                Demo Proyek <i data-lucide="external-link" className="w-3.5 h-3.5"></i>
+                                                            </a>
+                                                        )
+                                                    )}
                                                 </div>
                                             </div>
+
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
 
-                        {/* ----------------- TAB 4: CONTACT FORM ----------------- */}
+                        {/* ---------------- TAB 4: CONTACT FORM (EDITABLE HEADER) ---------------- */}
                         {activeTab === 'contact' && (
                             <div className="max-w-2xl mx-auto space-y-6 w-full">
-                                <div className="glass-card p-6 md:p-8 rounded-3xl text-center space-y-3">
+                                <div className="glass-card p-6 md:p-8 rounded-3xl text-center space-y-3 relative group">
+                                    {isAdminLoggedIn && (
+                                        <button onClick={() => { setContactEditForm({ contactTitle: profile.contactTitle, contactDesc: profile.contactDesc }); setShowContactEditModal(true); }} className="absolute top-4 right-4 z-10 p-2 bg-amber-500 text-white rounded-xl shadow-md hover:bg-amber-600">
+                                            <i data-lucide="edit-3" className="w-3.5 h-3.5"></i>
+                                        </button>
+                                    )}
                                     <div className="w-14 h-14 rounded-full bg-peach-100 text-peach-600 mx-auto flex items-center justify-center">
                                         <i data-lucide="mail" className="w-7 h-7"></i>
                                     </div>
-                                    <h2 className="font-serif font-bold text-3xl text-[#3D2B27]">Mari Berkolaborasi ✉️</h2>
+                                    <h2 className="font-serif font-bold text-3xl text-[#3D2B27]">{profile.contactTitle}</h2>
                                     <p className="text-xs text-[#8C7A76] max-w-md mx-auto">
-                                        Punya ide proyek menarik atau ingin berkonsultasi mengenai UI/UX dan webapp? Kirimkan pesan di bawah ini.
+                                        {profile.contactDesc}
                                     </p>
                                 </div>
-
-                                {contactSubmitted && (
-                                    <div className="p-4 bg-emerald-100 border border-emerald-300 text-emerald-800 rounded-2xl text-xs font-medium text-center">
-                                        🎉 Terima kasih! Pesan Anda telah terkirim dan akan segera dibalas.
-                                    </div>
-                                )}
 
                                 <form onSubmit={handleContactSubmit} className="glass-card p-6 md:p-8 rounded-3xl space-y-4">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">Nama Lengkap</label>
-                                            <input 
-                                                type="text" 
-                                                required 
-                                                value={contactForm.name} 
-                                                onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                                                placeholder="Nama Anda"
-                                                className="w-full bg-white/80 border border-peach-200 rounded-xl px-3.5 py-2.5 text-xs text-[#3D2B27] focus:outline-none focus:border-peach-500" 
-                                            />
+                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">Nama Anda</label>
+                                            <input type="text" required value={contactForm.name} onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })} placeholder="Nama Lengkap" className="w-full bg-white/80 border border-peach-200 rounded-xl px-3.5 py-2.5 text-xs text-[#3D2B27] focus:outline-none focus:border-peach-500" />
                                         </div>
                                         <div>
-                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">Alamat Email</label>
-                                            <input 
-                                                type="email" 
-                                                required 
-                                                value={contactForm.email} 
-                                                onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                                                placeholder="email@domain.com"
-                                                className="w-full bg-white/80 border border-peach-200 rounded-xl px-3.5 py-2.5 text-xs text-[#3D2B27] focus:outline-none focus:border-peach-500" 
-                                            />
+                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">Email Anda</label>
+                                            <input type="email" required value={contactForm.email} onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })} placeholder="email@domain.com" className="w-full bg-white/80 border border-peach-200 rounded-xl px-3.5 py-2.5 text-xs text-[#3D2B27] focus:outline-none focus:border-peach-500" />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Subjek Pesan</label>
-                                        <input 
-                                            type="text" 
-                                            required 
-                                            value={contactForm.subject} 
-                                            onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
-                                            placeholder="Topik Diskusi / Penawaran Proyek"
-                                            className="w-full bg-white/80 border border-peach-200 rounded-xl px-3.5 py-2.5 text-xs text-[#3D2B27] focus:outline-none focus:border-peach-500" 
-                                        />
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Subjek</label>
+                                        <input type="text" required value={contactForm.subject} onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })} placeholder="Diskusi Proyek UI/UX" className="w-full bg-white/80 border border-peach-200 rounded-xl px-3.5 py-2.5 text-xs text-[#3D2B27] focus:outline-none focus:border-peach-500" />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Pesan / Detail Proyek</label>
-                                        <textarea 
-                                            rows="4" 
-                                            required 
-                                            value={contactForm.message} 
-                                            onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                                            placeholder="Tuliskan pesan singkat Anda di sini..."
-                                            className="w-full bg-white/80 border border-peach-200 rounded-xl px-3.5 py-2.5 text-xs text-[#3D2B27] focus:outline-none focus:border-peach-500"
-                                        ></textarea>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Pesan</label>
+                                        <textarea rows="4" required value={contactForm.message} onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })} placeholder="Tuliskan pesan Anda secara mendalam..." className="w-full bg-white/80 border border-peach-200 rounded-xl px-3.5 py-2.5 text-xs text-[#3D2B27] focus:outline-none focus:border-peach-500"></textarea>
                                     </div>
-                                    <button 
-                                        type="submit" 
-                                        className="w-full py-3 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-peach-500/30 transition-all flex items-center justify-center gap-2"
-                                    >
+                                    <button type="submit" className="w-full py-3 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-peach-500/30 flex items-center justify-center gap-2">
                                         <i data-lucide="send" className="w-4 h-4"></i> Kirim Pesan Now
                                     </button>
                                 </form>
                             </div>
                         )}
 
-                        {/* ----------------- TAB 5: ADMIN DASHBOARD (PROTECTED) ----------------- */}
+                        {/* ---------------- TAB 5: ADMIN DASHBOARD ---------------- */}
                         {activeTab === 'admin' && isAdminLoggedIn && (
                             <div className="space-y-6">
                                 <div className="glass-card p-6 rounded-3xl flex justify-between items-center">
                                     <div>
                                         <span className="text-xs font-bold text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full uppercase">
-                                            Logged in as Administrator
+                                            Administrator Panel Active
                                         </span>
-                                        <h2 className="font-serif font-bold text-2xl text-[#3D2B27] mt-2">Admin Control Center 🔐</h2>
+                                        <h2 className="font-serif font-bold text-2xl text-[#3D2B27] mt-2">Kelola Konten & Data 🔐</h2>
                                     </div>
-                                    <button 
-                                        onClick={() => { setIsAdminLoggedIn(false); setActiveTab('home'); }}
-                                        className="px-4 py-2 bg-rose-500 text-white text-xs font-bold rounded-xl hover:bg-rose-600 transition-all"
-                                    >
+                                    <button onClick={() => { setIsAdminLoggedIn(false); setActiveTab('home'); }} className="px-4 py-2 bg-rose-500 text-white text-xs font-bold rounded-xl hover:bg-rose-600">
                                         Logout
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <button onClick={() => { setProfileForm(profile); setShowProfileModal(true); }} className="glass-card p-5 rounded-3xl text-left hover:border-peach-500">
+                                        <div className="w-10 h-10 rounded-xl bg-peach-100 text-peach-600 flex items-center justify-center mb-2">
+                                            <i data-lucide="user-check" className="w-5 h-5"></i>
+                                        </div>
+                                        <h4 className="font-bold text-sm text-[#3D2B27]">1. Edit Header & Profil</h4>
+                                        <p className="text-xs text-[#8C7A76] mt-1">Nama, Role, Greeting, Avatar, & Lokasi.</p>
+                                    </button>
+
+                                    <button onClick={() => { setStatusForm({ availableForHire: profile.availableForHire, statusTitle: profile.statusTitle, statusBadge: profile.statusBadge, statusDesc: profile.statusDesc }); setShowStatusModal(true); }} className="glass-card p-5 rounded-3xl text-left hover:border-peach-500">
+                                        <div className="w-10 h-10 rounded-xl bg-peach-100 text-peach-600 flex items-center justify-center mb-2">
+                                            <i data-lucide="sparkles" className="w-5 h-5"></i>
+                                        </div>
+                                        <h4 className="font-bold text-sm text-[#3D2B27]">2. Status Proyek & Hire</h4>
+                                        <p className="text-xs text-[#8C7A76] mt-1">Ubah badge ketersediaan & deskripsi.</p>
+                                    </button>
+
+                                    <button onClick={() => { setSkillsListForm([...skills]); setShowSkillsModal(true); }} className="glass-card p-5 rounded-3xl text-left hover:border-peach-500">
+                                        <div className="w-10 h-10 rounded-xl bg-peach-100 text-peach-600 flex items-center justify-center mb-2">
+                                            <i data-lucide="bar-chart-3" className="w-5 h-5"></i>
+                                        </div>
+                                        <h4 className="font-bold text-sm text-[#3D2B27]">3. Kelola Keahlian (Skills)</h4>
+                                        <p className="text-xs text-[#8C7A76] mt-1">Tambah, edit %, atau hapus skill.</p>
+                                    </button>
+
+                                    <button onClick={() => { setQuoteForm({ quote: profile.quote, quoteSub: profile.quoteSub, author: profile.author }); setShowQuoteModal(true); }} className="glass-card p-5 rounded-3xl text-left hover:border-peach-500">
+                                        <div className="w-10 h-10 rounded-xl bg-peach-100 text-peach-600 flex items-center justify-center mb-2">
+                                            <i data-lucide="quote" className="w-5 h-5"></i>
+                                        </div>
+                                        <h4 className="font-bold text-sm text-[#3D2B27]">4. Edit Quote Card</h4>
+                                        <p className="text-xs text-[#8C7A76] mt-1">Quote mandarin/inggris & penulis.</p>
+                                    </button>
+
+                                    <button onClick={() => { setAudioForm({ audioTitle: profile.audioTitle, audioEp: profile.audioEp, audioCoverTag: profile.audioCoverTag }); setShowAudioModal(true); }} className="glass-card p-5 rounded-3xl text-left hover:border-peach-500">
+                                        <div className="w-10 h-10 rounded-xl bg-peach-100 text-peach-600 flex items-center justify-center mb-2">
+                                            <i data-lucide="headphones" className="w-5 h-5"></i>
+                                        </div>
+                                        <h4 className="font-bold text-sm text-[#3D2B27]">5. Edit Audio Podcast Log</h4>
+                                        <p className="text-xs text-[#8C7A76] mt-1">Judul podcast & episode terbaru.</p>
+                                    </button>
+
+                                    <button onClick={() => { setSpotlightForm({ spotlightBadge: profile.spotlightBadge, spotlightTitle: profile.spotlightTitle, spotlightDesc: profile.spotlightDesc }); setShowSpotlightModal(true); }} className="glass-card p-5 rounded-3xl text-left hover:border-peach-500">
+                                        <div className="w-10 h-10 rounded-xl bg-peach-100 text-peach-600 flex items-center justify-center mb-2">
+                                            <i data-lucide="flame" className="w-5 h-5"></i>
+                                        </div>
+                                        <h4 className="font-bold text-sm text-[#3D2B27]">6. Edit Spotlight Banner</h4>
+                                        <p className="text-xs text-[#8C7A76] mt-1">Banner konversi utama Bio Hub.</p>
                                     </button>
                                 </div>
 
                                 {/* Inbox Messages */}
                                 <div className="glass-card p-6 rounded-3xl space-y-4">
                                     <h3 className="font-bold text-base text-[#3D2B27] flex items-center gap-2">
-                                        <i data-lucide="inbox" className="w-4 h-4 text-peach-500"></i>
-                                        Pesan Masuk ({messages.length})
+                                        <i data-lucide="inbox" className="w-4 h-4 text-peach-500"></i> Pesan Masuk ({messages.length})
                                     </h3>
-                                    <div className="space-y-3">
-                                        {messages.map((msg) => (
-                                            <div key={msg.id} className="p-4 bg-white/80 border border-peach-200 rounded-2xl text-xs space-y-1">
-                                                <div className="flex justify-between font-bold text-[#3D2B27]">
-                                                    <span>{msg.name} ({msg.email})</span>
-                                                    <span className="text-[#8C7A76] font-normal">{msg.date}</span>
+                                    {messages.length === 0 ? (
+                                        <p className="text-xs text-[#8C7A76]">Belum ada pesan baru masuk.</p>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {messages.map((m) => (
+                                                <div key={m.id} className="p-4 bg-white/90 border border-peach-200 rounded-2xl text-xs space-y-1">
+                                                    <div className="flex justify-between font-bold text-[#3D2B27]">
+                                                        <span>{m.name} ({m.email})</span>
+                                                        <span className="text-[#8C7A76] font-normal">{m.date}</span>
+                                                    </div>
+                                                    <div className="text-peach-700 font-semibold">{m.subject}</div>
+                                                    <p className="text-[#8C7A76]">{m.message}</p>
                                                 </div>
-                                                <div className="text-peach-700 font-semibold">{msg.subject}</div>
-                                                <p className="text-[#8C7A76]">{msg.text}</p>
-                                            </div>
-                                        ))}
-                                    </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
 
-                        {/* ----------------- BOTTOM QUICK PILL BAR ----------------- */}
-                        <div className="glass-card p-2.5 rounded-full flex items-center justify-center gap-2 max-w-md mx-auto border border-white/90 shadow-lg shadow-peach-900/5">
-                            <button 
-                                onClick={() => setActiveTab('foam-links')} 
-                                className="flex items-center gap-1.5 text-xs font-bold text-[#3D2B27] hover:bg-peach-100 px-3 py-1.5 rounded-full transition-colors"
-                            >
-                                <span className="w-2 h-2 rounded-full bg-peach-500"></span> 记一笔 / Link Hub
-                            </button>
-                            <span className="text-peach-300">|</span>
-                            <button 
-                                onClick={() => setActiveTab('projects')} 
-                                className="flex items-center gap-1.5 text-xs font-bold text-[#3D2B27] hover:bg-peach-100 px-3 py-1.5 rounded-full transition-colors"
-                            >
-                                🔥 Portofolio
-                            </button>
-                            <span className="text-peach-300">|</span>
-                            <button 
-                                onClick={() => setActiveTab('contact')} 
-                                className="flex items-center gap-1.5 text-xs font-bold text-[#3D2B27] hover:bg-peach-100 px-3 py-1.5 rounded-full transition-colors"
-                            >
-                                ✍️ Kirim Pesan
-                            </button>
-                        </div>
-
                     </main>
 
-                    {/* ----------------- MODAL LOGIN ADMIN ----------------- */}
-                    {showLoginModal && (
-                        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
-                            <div className="glass-card p-6 md:p-8 rounded-3xl max-w-sm w-full space-y-4 bg-white relative">
-                                <button onClick={() => setShowLoginModal(false)} className="absolute top-4 right-4 text-[#8C7A76]">
-                                    <i data-lucide="x" className="w-5 h-5"></i>
-                                </button>
-                                <div className="text-center space-y-1">
-                                    <h3 className="font-serif font-bold text-2xl text-[#3D2B27]">Admin Login</h3>
-                                    <p className="text-xs text-[#8C7A76]">Masukan kredensial untuk mengelola data.</p>
+                    {/* MODAL 1: EDIT PROFILE HEADER */}
+                    {showProfileModal && (
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+                            <div className="glass-card p-6 rounded-3xl max-w-lg w-full bg-white space-y-4 max-h-[90vh] overflow-y-auto">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Edit Profil & Header Utama</h3>
+                                    <button onClick={() => setShowProfileModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
                                 </div>
-                                <form onSubmit={handleLoginSubmit} className="space-y-3 pt-2">
+                                <form onSubmit={handleSaveProfile} className="space-y-3">
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Username</label>
-                                        <input 
-                                            type="text" 
-                                            required 
-                                            value={loginForm.username} 
-                                            onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
-                                            placeholder="admin"
-                                            className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" 
-                                        />
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Greeting Main Title</label>
+                                        <input type="text" required value={profileForm.greeting} onChange={(e) => setProfileForm({ ...profileForm, greeting: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Password</label>
-                                        <input 
-                                            type="password" 
-                                            required 
-                                            value={loginForm.password} 
-                                            onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                                            placeholder="edudigital"
-                                            className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" 
-                                        />
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Nama Lengkap</label>
+                                        <input type="text" required value={profileForm.name} onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
-                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">
-                                        Masuk Panel Admin
-                                    </button>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Role / Job Title</label>
+                                        <input type="text" required value={profileForm.role} onChange={(e) => setProfileForm({ ...profileForm, role: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Lokasi & Suhu</label>
+                                        <input type="text" value={profileForm.location} onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Keterangan Cuaca</label>
+                                        <input type="text" value={profileForm.weather} onChange={(e) => setProfileForm({ ...profileForm, weather: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">URL Avatar / Foto Profil</label>
+                                        <input type="url" value={profileForm.avatar} onChange={(e) => setProfileForm({ ...profileForm, avatar: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Simpan Perubahan Profil</button>
                                 </form>
                             </div>
                         </div>
                     )}
 
-                    {/* ----------------- MODAL TAMBAH FOAM LINK ----------------- */}
-                    {showAddLinkModal && (
-                        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
-                            <div className="glass-card p-6 rounded-3xl max-w-md w-full space-y-4 bg-white relative">
-                                <button onClick={() => setShowAddLinkModal(false)} className="absolute top-4 right-4 text-[#8C7A76]">
-                                    <i data-lucide="x" className="w-5 h-5"></i>
-                                </button>
-                                <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Tambah Foam Link Baru</h3>
-                                <form onSubmit={handleAddFoamLink} className="space-y-3">
+                    {/* MODAL 2: EDIT STATUS & AVAILABILITY */}
+                    {showStatusModal && (
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Edit Status Proyek & Hire</h3>
+                                    <button onClick={() => setShowStatusModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
+                                </div>
+                                <form onSubmit={handleSaveStatus} className="space-y-3">
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Judul Status Utama</label>
+                                        <input type="text" required value={statusForm.statusTitle} onChange={(e) => setStatusForm({ ...statusForm, statusTitle: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Badge Teks (misal: For Hire / Busy)</label>
+                                        <input type="text" required value={statusForm.statusBadge} onChange={(e) => setStatusForm({ ...statusForm, statusBadge: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Deskripsi Ketersediaan</label>
+                                        <textarea rows="3" value={statusForm.statusDesc} onChange={(e) => setStatusForm({ ...statusForm, statusDesc: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
+                                    </div>
+                                    <div className="flex items-center gap-2 pt-1">
+                                        <input type="checkbox" id="availableForHire" checked={statusForm.availableForHire} onChange={(e) => setStatusForm({ ...statusForm, availableForHire: e.target.checked })} className="rounded accent-peach-500" />
+                                        <label htmlFor="availableForHire" className="text-xs font-semibold text-[#3D2B27]">Aktifkan Mode Siap Dihubungi (Hijau)</label>
+                                    </div>
+                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Simpan Status Proyek</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL 3: EDIT QUOTE */}
+                    {showQuoteModal && (
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Edit Quote Inspiratif</h3>
+                                    <button onClick={() => setShowQuoteModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
+                                </div>
+                                <form onSubmit={handleSaveQuote} className="space-y-3">
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Quote Utama (Mandarin/Bahasa)</label>
+                                        <textarea rows="2" required value={quoteForm.quote} onChange={(e) => setQuoteForm({ ...quoteForm, quote: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Terjemahan / Sub-quote</label>
+                                        <textarea rows="2" value={quoteForm.quoteSub} onChange={(e) => setQuoteForm({ ...quoteForm, quoteSub: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Penulis / Tokoh Quote</label>
+                                        <input type="text" required value={quoteForm.author} onChange={(e) => setQuoteForm({ ...quoteForm, author: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Simpan Quote</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL 4: EDIT SKILLS */}
+                    {showSkillsModal && (
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+                            <div className="glass-card p-6 rounded-3xl max-w-lg w-full bg-white space-y-4 max-h-[85vh] overflow-y-auto">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Kelola Daftar Keahlian (Skills)</h3>
+                                    <button onClick={() => setShowSkillsModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
+                                </div>
+                                <form onSubmit={handleSaveSkills} className="space-y-3">
+                                    {skillsListForm.map((s, idx) => (
+                                        <div key={s.id || idx} className="p-3 bg-peach-50 rounded-2xl border border-peach-200 flex items-center gap-2">
+                                            <input type="text" required value={s.name} onChange={(e) => { const updated = [...skillsListForm]; updated[idx].name = e.target.value; setSkillsListForm(updated); }} className="flex-1 border border-peach-200 rounded-xl px-2.5 py-1.5 text-xs bg-white" placeholder="Nama Keahlian" />
+                                            <input type="number" min="0" max="100" required value={s.percentage} onChange={(e) => { const updated = [...skillsListForm]; updated[idx].percentage = e.target.value; setSkillsListForm(updated); }} className="w-20 border border-peach-200 rounded-xl px-2.5 py-1.5 text-xs bg-white text-center" />
+                                            <span className="text-xs text-[#8C7A76]">%</span>
+                                            <button type="button" onClick={() => handleRemoveSkillItem(s.id)} className="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg">
+                                                <i data-lucide="trash-2" className="w-4 h-4"></i>
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <button type="button" onClick={handleAddSkillItem} className="w-full py-2 bg-peach-100 text-peach-700 font-bold text-xs rounded-xl border border-dashed border-peach-300">
+                                        + Tambah Baris Skill Baru
+                                    </button>
+                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Simpan Daftar Skills</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL 5: EDIT AUDIO LOG */}
+                    {showAudioModal && (
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Edit Audio Log / Podcast</h3>
+                                    <button onClick={() => setShowAudioModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
+                                </div>
+                                <form onSubmit={handleSaveAudio} className="space-y-3">
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Label Ikon Cover (Max 6 Huruf)</label>
+                                        <input type="text" maxLength="6" required value={audioForm.audioCoverTag} onChange={(e) => setAudioForm({ ...audioForm, audioCoverTag: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Judul Podcast / Track</label>
+                                        <input type="text" required value={audioForm.audioTitle} onChange={(e) => setAudioForm({ ...audioForm, audioTitle: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Detail Episode / Keterangan</label>
+                                        <input type="text" required value={audioForm.audioEp} onChange={(e) => setAudioForm({ ...audioForm, audioEp: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Simpan Audio Log</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL 6: EDIT SPOTLIGHT BANNER */}
+                    {showSpotlightModal && (
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Edit Spotlight Banner</h3>
+                                    <button onClick={() => setShowSpotlightModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
+                                </div>
+                                <form onSubmit={handleSaveSpotlight} className="space-y-3">
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Teks Badge Spotlight</label>
+                                        <input type="text" required value={spotlightForm.spotlightBadge} onChange={(e) => setSpotlightForm({ ...spotlightForm, spotlightBadge: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Judul Banner Utama</label>
+                                        <input type="text" required value={spotlightForm.spotlightTitle} onChange={(e) => setSpotlightForm({ ...spotlightForm, spotlightTitle: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Sub-deskripsi Banner</label>
+                                        <textarea rows="2" value={spotlightForm.spotlightDesc} onChange={(e) => setSpotlightForm({ ...spotlightForm, spotlightDesc: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
+                                    </div>
+                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Simpan Spotlight Banner</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL 7: EDIT CONTACT TAB TEXTS */}
+                    {showContactEditModal && (
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Edit Teks Halaman Kontak</h3>
+                                    <button onClick={() => setShowContactEditModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
+                                </div>
+                                <form onSubmit={handleSaveContactEdit} className="space-y-3">
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Judul Kontak</label>
+                                        <input type="text" required value={contactEditForm.contactTitle} onChange={(e) => setContactEditForm({ ...contactEditForm, contactTitle: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Deskripsi Halaman Kontak</label>
+                                        <textarea rows="3" required value={contactEditForm.contactDesc} onChange={(e) => setContactEditForm({ ...contactEditForm, contactDesc: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
+                                    </div>
+                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Simpan Teks Kontak</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL FOAM LINK (ADD/EDIT) */}
+                    {showLinkModal && (
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">{editingLink ? 'Edit Foam Link' : 'Tambah Foam Link Baru'}</h3>
+                                    <button onClick={() => setShowLinkModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
+                                </div>
+                                <form onSubmit={handleSaveLink} className="space-y-3">
                                     <div>
                                         <label className="text-xs font-bold text-[#3D2B27] block mb-1">Judul Tautan</label>
-                                        <input type="text" required value={newLinkForm.title} onChange={(e) => setNewLinkForm({ ...newLinkForm, title: e.target.value })} placeholder="misal: Instagram Visual" className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        <input type="text" required value={linkForm.title} onChange={(e) => setLinkForm({ ...linkForm, title: e.target.value })} placeholder="misal: Portfolio Behance" className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
                                     <div>
                                         <label className="text-xs font-bold text-[#3D2B27] block mb-1">Kategori</label>
-                                        <select value={newLinkForm.category} onChange={(e) => setNewLinkForm({ ...newLinkForm, category: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs bg-white">
+                                        <select value={linkForm.category} onChange={(e) => setLinkForm({ ...linkForm, category: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs bg-white">
                                             <option value="Social Media">Social Media</option>
                                             <option value="Design Showcase">Design Showcase</option>
                                             <option value="Code">Code</option>
@@ -902,16 +1182,130 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">URL Target</label>
-                                        <input type="url" required value={newLinkForm.url} onChange={(e) => setNewLinkForm({ ...newLinkForm, url: e.target.value })} placeholder="https://..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Ikon Lucide (misal: instagram, github, figma, link, mail, calendar)</label>
+                                        <input type="text" value={linkForm.icon} onChange={(e) => setLinkForm({ ...linkForm, icon: e.target.value })} placeholder="instagram" className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Deskripsi Singkat</label>
-                                        <input type="text" value={newLinkForm.description} onChange={(e) => setNewLinkForm({ ...newLinkForm, description: e.target.value })} placeholder="Keterangan tautan..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">URL Target</label>
+                                        <input type="url" required value={linkForm.url} onChange={(e) => setLinkForm({ ...linkForm, url: e.target.value })} placeholder="https://..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
-                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">
-                                        Simpan Foam Link
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Deskripsi Ringkas</label>
+                                        <input type="text" value={linkForm.description} onChange={(e) => setLinkForm({ ...linkForm, description: e.target.value })} placeholder="Keterangan singkat tautan..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div className="flex items-center gap-2 pt-1">
+                                        <input type="checkbox" id="isFeatured" checked={linkForm.isFeatured} onChange={(e) => setLinkForm({ ...linkForm, isFeatured: e.target.checked })} className="rounded accent-peach-500" />
+                                        <label htmlFor="isFeatured" className="text-xs font-semibold text-[#3D2B27]">Tandai Sebagai Tautan Unggulan (Featured Badge)</label>
+                                    </div>
+                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Simpan Foam Link</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL KARYA (ADD/EDIT) */}
+                    {showWorkModal && (
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+                            <div className="glass-card p-6 rounded-3xl max-w-lg w-full bg-white space-y-4 max-h-[90vh] overflow-y-auto">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">{editingWork ? 'Edit Karya' : 'Tambah Karya Baru'}</h3>
+                                    <button onClick={() => setShowWorkModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
+                                </div>
+                                <form onSubmit={handleSaveWork} className="space-y-3">
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Tipe Karya</label>
+                                        <select value={workForm.workType} onChange={(e) => setWorkForm({ ...workForm, workType: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs bg-white font-semibold">
+                                            <option value="image">🖼️ Visual / Gambar Showcase</option>
+                                            <option value="text">📝 Artikel / Naskah Teks Utuh</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Judul Karya / Artikel</label>
+                                        <input type="text" required value={workForm.title} onChange={(e) => setWorkForm({ ...workForm, title: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Sub-judul / Tagline</label>
+                                        <input type="text" value={workForm.subtitle} onChange={(e) => setWorkForm({ ...workForm, subtitle: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    {workForm.workType === 'image' ? (
+                                        <div>
+                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">URL Gambar Preview</label>
+                                            <input type="url" required value={workForm.image} onChange={(e) => setWorkForm({ ...workForm, image: e.target.value })} placeholder="https://..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">Naskah Artikel Utuh (Teks Lengkap)</label>
+                                            <textarea rows="6" required value={workForm.fullContent} onChange={(e) => setWorkForm({ ...workForm, fullContent: e.target.value })} placeholder="Tuliskan isi artikel atau esai lengkap Anda di sini..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs leading-relaxed"></textarea>
+                                        </div>
+                                    )}
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Deskripsi Singkat / Ringkasan</label>
+                                        <textarea rows="2" required value={workForm.description} onChange={(e) => setWorkForm({ ...workForm, description: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Tags (pisahkan dengan koma)</label>
+                                        <input type="text" value={workForm.tags} onChange={(e) => setWorkForm({ ...workForm, tags: e.target.value })} placeholder="React, UI Design, Article" className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Simpan Karya</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL READER NASKAH ARTIKEL */}
+                    {activeArticleModal && (
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+                            <div className="glass-card p-6 md:p-8 rounded-3xl max-w-2xl w-full bg-white space-y-4 max-h-[85vh] overflow-y-auto">
+                                <div className="flex justify-between items-start border-b border-peach-200 pb-3">
+                                    <div>
+                                        <span className="text-[10px] bg-peach-100 text-peach-700 font-bold px-2.5 py-0.5 rounded-full uppercase">
+                                            {activeArticleModal.category}
+                                        </span>
+                                        <h2 className="font-serif font-bold text-2xl text-[#3D2B27] mt-1">{activeArticleModal.title}</h2>
+                                        <p className="text-xs text-peach-600 font-semibold">{activeArticleModal.subtitle}</p>
+                                    </div>
+                                    <button onClick={() => setActiveArticleModal(null)} className="p-1 hover:bg-peach-100 rounded-full">
+                                        <i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i>
                                     </button>
+                                </div>
+                                <div className="text-xs text-[#3D2B27] leading-relaxed whitespace-pre-line py-2">
+                                    {activeArticleModal.fullContent || activeArticleModal.description}
+                                </div>
+                                <div className="pt-3 border-t border-peach-200 flex justify-between items-center text-xs">
+                                    <div className="flex gap-1">
+                                        {activeArticleModal.tags.map((t, i) => (
+                                            <span key={i} className="bg-peach-100 text-peach-700 font-medium px-2 py-0.5 rounded-md">#{t}</span>
+                                        ))}
+                                    </div>
+                                    <button onClick={() => setActiveArticleModal(null)} className="px-4 py-2 bg-peach-500 text-white font-bold rounded-xl">
+                                        Tutup Pembaca
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL LOGIN ADMIN */}
+                    {showLoginModal && (
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+                            <div className="glass-card p-6 rounded-3xl max-w-sm w-full bg-white space-y-4 relative">
+                                <button onClick={() => setShowLoginModal(false)} className="absolute top-4 right-4 text-[#8C7A76]">
+                                    <i data-lucide="x" className="w-5 h-5"></i>
+                                </button>
+                                <div className="text-center space-y-1">
+                                    <h3 className="font-serif font-bold text-2xl text-[#3D2B27]">Admin Login</h3>
+                                    <p className="text-xs text-[#8C7A76]">Kredensial default: admin / edudigital</p>
+                                </div>
+                                <form onSubmit={handleLoginSubmit} className="space-y-3 pt-2">
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Username</label>
+                                        <input type="text" required value={loginForm.username} onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })} placeholder="admin" className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Password</label>
+                                        <input type="password" required value={loginForm.password} onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })} placeholder="edudigital" className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <button type="submit" className="w-full py-2.5 bg-peach-500 text-white font-bold text-xs rounded-xl shadow-md">Masuk Panel Admin</button>
                                 </form>
                             </div>
                         </div>
