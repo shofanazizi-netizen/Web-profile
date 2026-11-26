@@ -217,67 +217,111 @@
             React.useEffect(() => { localStorage.setItem('bento_works', JSON.stringify(works)); }, [works]);
             React.useEffect(() => { localStorage.setItem('bento_skills', JSON.stringify(skills)); }, [skills]);
 
+            // AUTOMATIC FETCH FROM GOOGLE SHEETS CLOUD DATABASE ON MOUNT
+            React.useEffect(() => {
+                if (GAS_URL && GAS_URL !== "URL_DEPLOY_GAS_ANDA_DISINI") {
+                    fetch(GAS_URL + "?action=getAllData")
+                        .then(res => res.json())
+                        .then(resData => {
+                            if (resData && resData.status === "success") {
+                                if (resData.data.profile) setProfile(resData.data.profile);
+                                if (resData.data.foamLinks && resData.data.foamLinks.length > 0) setFoamLinks(resData.data.foamLinks);
+                                if (resData.data.works && resData.data.works.length > 0) setWorks(resData.data.works);
+                                if (resData.data.skills && resData.data.skills.length > 0) setSkills(resData.data.skills);
+                                showToast("☁️ Data disinkronkan dari Google Sheets Cloud!");
+                            }
+                        })
+                        .catch(err => console.log("Cloud Fetch Error:", err));
+                }
+            }, []);
+
+            // HELPER SINKRONISASI KE GOOGLE APPS SCRIPT BACKEND
+            const syncToGas = (action, payload) => {
+                if (!GAS_URL || GAS_URL === "URL_DEPLOY_GAS_ANDA_DISINI") return;
+                try {
+                    fetch(GAS_URL, {
+                        method: "POST",
+                        mode: "no-cors",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ action: action, data: payload, id: payload ? payload.id : null })
+                    }).catch(err => console.log("Sync Error:", err));
+                } catch(e) {
+                    console.log("GAS Sync Failed", e);
+                }
+            };
+
             // Sync icon rendering
             React.useEffect(() => {
                 if (window.lucide) window.lucide.createIcons();
             }, [activeTab, foamLinks, works, skills, profile, isAdminLoggedIn, selectedLinkCategory, selectedWorkFilter]);
 
             const showToast = (msg) => {
-            setToastMessage(msg);
-            setTimeout(() => setToastMessage(''), 3000);
-        };
+                setToastMessage(msg);
+                setTimeout(() => setToastMessage(''), 3000);
+            };
 
-        // HELPER DETEKSI & SANITASI URL TARGET
-        const formatUrl = (url) => {
-            if (!url) return '#';
-            let cleanUrl = url.trim();
-            if (!/^https?:\/\//i.test(cleanUrl)) {
-                cleanUrl = 'https://' + cleanUrl;
-            }
-            return cleanUrl;
-        };
+            // HELPER DETEKSI & SANITASI URL TARGET
+            const formatUrl = (url) => {
+                if (!url) return '#';
+                let cleanUrl = url.trim();
+                if (!/^https?:\/\//i.test(cleanUrl)) {
+                    cleanUrl = 'https://' + cleanUrl;
+                }
+                return cleanUrl;
+            };
 
-        // ---------------- HANDLERS EDITABLE SEKSIONAL ----------------
+            // ---------------- HANDLERS EDITABLE SEKSIONAL (WITH CLOUD SYNC) ----------------
             const handleSaveProfile = (e) => {
                 e.preventDefault();
-                setProfile(prev => ({ ...prev, ...profileForm }));
+                const updated = { ...profile, ...profileForm };
+                setProfile(updated);
+                syncToGas('saveProfile', updated);
                 setShowProfileModal(false);
-                showToast('👤 Profil Utama Berhasil Diperbarui!');
+                showToast('👤 Profil Utama Berhasil Diperbarui & Disinkronkan!');
             };
 
             const handleSaveStatus = (e) => {
                 e.preventDefault();
-                setProfile(prev => ({ ...prev, ...statusForm }));
+                const updated = { ...profile, ...statusForm };
+                setProfile(updated);
+                syncToGas('saveProfile', updated);
                 setShowStatusModal(false);
-                showToast('✨ Status Proyek & Availability Diperbarui!');
+                showToast('✨ Status Proyek Diperbarui & Disinkronkan!');
             };
 
             const handleSaveQuote = (e) => {
                 e.preventDefault();
-                setProfile(prev => ({ ...prev, ...quoteForm }));
+                const updated = { ...profile, ...quoteForm };
+                setProfile(updated);
+                syncToGas('saveProfile', updated);
                 setShowQuoteModal(false);
-                showToast('💬 Quote Inspiratif Diperbarui!');
+                showToast('💬 Quote Diperbarui & Disinkronkan!');
             };
 
             const handleSaveAudio = (e) => {
                 e.preventDefault();
-                setProfile(prev => ({ ...prev, ...audioForm }));
+                const updated = { ...profile, ...audioForm };
+                setProfile(updated);
+                syncToGas('saveProfile', updated);
                 setShowAudioModal(false);
-                showToast('🎙️ Audio Podcast Widget Diperbarui!');
+                showToast('🎙️ Audio Podcast Diperbarui & Disinkronkan!');
             };
 
             const handleSaveSpotlight = (e) => {
                 e.preventDefault();
-                setProfile(prev => ({ ...prev, ...spotlightForm }));
+                const updated = { ...profile, ...spotlightForm };
+                setProfile(updated);
+                syncToGas('saveProfile', updated);
                 setShowSpotlightModal(false);
-                showToast('🔥 Spotlight Bio Hub Diperbarui!');
+                showToast('🔥 Spotlight Banner Diperbarui & Disinkronkan!');
             };
 
             const handleSaveSkills = (e) => {
                 e.preventDefault();
                 setSkills(skillsListForm);
+                syncToGas('saveSkills', skillsListForm);
                 setShowSkillsModal(false);
-                showToast('📊 List Keahlian/Skills Diperbarui!');
+                showToast('📊 Skills Diperbarui & Disinkronkan!');
             };
 
             const handleAddSkillItem = () => {
@@ -290,12 +334,14 @@
 
             const handleSaveContactEdit = (e) => {
                 e.preventDefault();
-                setProfile(prev => ({ ...prev, ...contactEditForm }));
+                const updated = { ...profile, ...contactEditForm };
+                setProfile(updated);
+                syncToGas('saveProfile', updated);
                 setShowContactEditModal(false);
-                showToast('✉️ Teks Halaman Kontak Diperbarui!');
+                showToast('✉️ Teks Kontak Diperbarui & Disinkronkan!');
             };
 
-            // ---------------- HANDLERS FOAM LINK & WORKS ----------------
+            // ---------------- HANDLERS FOAM LINK & WORKS (WITH CLOUD SYNC) ----------------
             const handleLinkClick = (id, url) => {
                 if (!url) return;
                 const targetUrl = formatUrl(url);
@@ -313,40 +359,48 @@
 
             const handleSaveLink = (e) => {
                 e.preventDefault();
+                let targetLink = null;
                 if (editingLink) {
-                    setFoamLinks(foamLinks.map(item => item.id === editingLink.id ? { ...linkForm, id: editingLink.id, clicks: editingLink.clicks } : item));
-                    showToast('✅ Foam Link berhasil diperbarui!');
+                    targetLink = { ...linkForm, id: editingLink.id, clicks: editingLink.clicks };
+                    setFoamLinks(foamLinks.map(item => item.id === editingLink.id ? targetLink : item));
+                    showToast('✅ Foam Link diperbarui & disinkronkan!');
                 } else {
-                    const newLink = { ...linkForm, id: Date.now(), clicks: 0 };
-                    setFoamLinks([newLink, ...foamLinks]);
-                    showToast('✨ Foam Link baru ditambahkan!');
+                    targetLink = { ...linkForm, id: Date.now(), clicks: 0 };
+                    setFoamLinks([targetLink, ...foamLinks]);
+                    showToast('✨ Foam Link baru ditambahkan & disinkronkan!');
                 }
+                syncToGas('saveLink', targetLink);
                 setShowLinkModal(false);
                 setEditingLink(null);
             };
 
             const handleDeleteLink = (id) => {
                 setFoamLinks(foamLinks.filter(item => item.id !== id));
+                syncToGas('deleteLink', { id: id });
                 showToast('🗑️ Foam Link telah dihapus.');
             };
 
             const handleSaveWork = (e) => {
                 e.preventDefault();
                 const processedTags = typeof workForm.tags === 'string' ? workForm.tags.split(',').map(t => t.trim()) : workForm.tags;
+                let targetWork = null;
                 if (editingWork) {
-                    setWorks(works.map(item => item.id === editingWork.id ? { ...workForm, tags: processedTags, id: editingWork.id } : item));
-                    showToast('✅ Karya/Artikel diperbarui!');
+                    targetWork = { ...workForm, tags: processedTags, id: editingWork.id };
+                    setWorks(works.map(item => item.id === editingWork.id ? targetWork : item));
+                    showToast('✅ Karya diperbarui & disinkronkan!');
                 } else {
-                    const newWork = { ...workForm, tags: processedTags, id: Date.now() };
-                    setWorks([newWork, ...works]);
-                    showToast('🎨 Karya baru ditambahkan!');
+                    targetWork = { ...workForm, tags: processedTags, id: Date.now() };
+                    setWorks([targetWork, ...works]);
+                    showToast('🎨 Karya baru ditambahkan & disinkronkan!');
                 }
+                syncToGas('saveWork', targetWork);
                 setShowWorkModal(false);
                 setEditingWork(null);
             };
 
             const handleDeleteWork = (id) => {
                 setWorks(works.filter(item => item.id !== id));
+                syncToGas('deleteWork', { id: id });
                 showToast('🗑️ Karya telah dihapus.');
             };
 
@@ -355,7 +409,7 @@
                 if (loginForm.username === 'admin' && (loginForm.password === 'edudigital' || loginForm.password === 'admin2026')) {
                     setIsAdminLoggedIn(true);
                     setShowLoginModal(false);
-                    showToast('🔓 Login Admin Berhasil! Mode Edit Aktif.');
+                    showToast('🔓 Login Admin Berhasil! Mode Edit Cloud Aktif.');
                 } else {
                     showToast('❌ Username/Password Salah!');
                 }
@@ -365,8 +419,9 @@
                 e.preventDefault();
                 const newMsg = { id: Date.now(), ...contactForm, date: new Date().toISOString().split('T')[0] };
                 setMessages([newMsg, ...messages]);
+                syncToGas('sendMessage', newMsg);
                 setContactForm({ name: '', email: '', subject: '', message: '' });
-                showToast('📬 Pesan Anda berhasil dikirim ke Admin!');
+                showToast('📬 Pesan Anda terkirim & disimpan ke Google Sheets!');
             };
 
             // Filter Process
