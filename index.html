@@ -2,8 +2,9 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Warm Bento Portfolio & Foam Link Hub</title>
+    
     <!-- Google Fonts: Plus Jakarta Sans & Playfair Display -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -78,8 +79,13 @@
 
     <script type="text/babel">
         // KONFIGURASI SAKLAR DEPLOYMENT
-        const IS_PREVIEW = false;
+        const IS_PREVIEW = false; // Ubah ke false saat deploy ke Blogger dengan Apps Script backend
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwi4eYNDVWU0I2KAmP6xXiqDQmXpqxmJWtjwSHS4U6szf2iSdHFMaO1WpwLHvn8Myd5Iw/exec";
+
+        const DEFAULT_CREDS = {
+            username: "admin",
+            password: "edudigital"
+        };
 
         // INITIAL DATA DEFAULT DEEP EDITABLE
         const DEFAULT_PROFILE = {
@@ -121,7 +127,7 @@
         const DEFAULT_WORKS = [
             {
                 id: 1,
-                workType: "image", // 'image' atau 'text'
+                workType: "image",
                 title: "From Minimalism to Emotional Design",
                 subtitle: "界面正在回归真实体验 · UI/UX Case Study",
                 category: "Visual Work",
@@ -154,6 +160,10 @@
         function App() {
             // State Utama
             const [activeTab, setActiveTab] = React.useState('home'); 
+            const [adminCreds, setAdminCreds] = React.useState(() => {
+                const saved = localStorage.getItem('bento_admin_creds');
+                return saved ? JSON.parse(saved) : DEFAULT_CREDS;
+            });
             const [profile, setProfile] = React.useState(() => {
                 const saved = localStorage.getItem('bento_profile');
                 return saved ? JSON.parse(saved) : DEFAULT_PROFILE;
@@ -179,9 +189,10 @@
             const [isPlayingAudio, setIsPlayingAudio] = React.useState(false);
             const [toastMessage, setToastMessage] = React.useState('');
 
-            // Modals States (Semua Elemen Memiliki Modal Edit)
+            // Modals States
             const [isAdminLoggedIn, setIsAdminLoggedIn] = React.useState(false);
             const [showLoginModal, setShowLoginModal] = React.useState(false);
+            const [showChangeCredsModal, setShowChangeCredsModal] = React.useState(false);
             const [showProfileModal, setShowProfileModal] = React.useState(false);
             const [showStatusModal, setShowStatusModal] = React.useState(false);
             const [showQuoteModal, setShowQuoteModal] = React.useState(false);
@@ -199,6 +210,7 @@
 
             // Form Temp States
             const [loginForm, setLoginForm] = React.useState({ username: '', password: '' });
+            const [credsForm, setCredsForm] = React.useState({ currentPassword: '', newUsername: '', newPassword: '' });
             const [profileForm, setProfileForm] = React.useState(profile);
             const [statusForm, setStatusForm] = React.useState({ availableForHire: profile.availableForHire, statusTitle: profile.statusTitle, statusBadge: profile.statusBadge, statusDesc: profile.statusDesc });
             const [quoteForm, setQuoteForm] = React.useState({ quote: profile.quote, quoteSub: profile.quoteSub, author: profile.author });
@@ -211,19 +223,21 @@
             const [workForm, setWorkForm] = React.useState({ workType: 'image', title: '', subtitle: '', category: 'Visual Work', description: '', fullContent: '', image: '', tags: '', demoUrl: '' });
             const [contactForm, setContactForm] = React.useState({ name: '', email: '', subject: '', message: '' });
 
-            // Simpan perubahan ke LocalStorage
+            // Persistence LocalStorage
+            React.useEffect(() => { localStorage.setItem('bento_admin_creds', JSON.stringify(adminCreds)); }, [adminCreds]);
             React.useEffect(() => { localStorage.setItem('bento_profile', JSON.stringify(profile)); }, [profile]);
             React.useEffect(() => { localStorage.setItem('bento_foam_links', JSON.stringify(foamLinks)); }, [foamLinks]);
             React.useEffect(() => { localStorage.setItem('bento_works', JSON.stringify(works)); }, [works]);
             React.useEffect(() => { localStorage.setItem('bento_skills', JSON.stringify(skills)); }, [skills]);
 
-            // AUTOMATIC FETCH FROM GOOGLE SHEETS CLOUD DATABASE ON MOUNT
+            // FETCH CLOUD DATA FROM GOOGLE SHEETS
             React.useEffect(() => {
                 if (GAS_URL && GAS_URL !== "URL_DEPLOY_GAS_ANDA_DISINI") {
                     fetch(GAS_URL + "?action=getAllData")
                         .then(res => res.json())
                         .then(resData => {
                             if (resData && resData.status === "success") {
+                                if (resData.data.credentials) setAdminCreds(resData.data.credentials);
                                 if (resData.data.profile) setProfile(resData.data.profile);
                                 if (resData.data.foamLinks && resData.data.foamLinks.length > 0) setFoamLinks(resData.data.foamLinks);
                                 if (resData.data.works && resData.data.works.length > 0) setWorks(resData.data.works);
@@ -235,14 +249,14 @@
                 }
             }, []);
 
-            // HELPER SINKRONISASI KE GOOGLE APPS SCRIPT BACKEND
+            // HELPER SINKRONISASI GAS
             const syncToGas = (action, payload) => {
                 if (!GAS_URL || GAS_URL === "URL_DEPLOY_GAS_ANDA_DISINI") return;
                 try {
                     fetch(GAS_URL, {
                         method: "POST",
                         mode: "no-cors",
-                        headers: { "Content-Type": "application/json" },
+                        headers: { "Content-Type": "text/plain" },
                         body: JSON.stringify({ action: action, data: payload, id: payload ? payload.id : null })
                     }).catch(err => console.log("Sync Error:", err));
                 } catch(e) {
@@ -250,7 +264,7 @@
                 }
             };
 
-            // Sync icon rendering
+            // Lucide Icon Sync
             React.useEffect(() => {
                 if (window.lucide) window.lucide.createIcons();
             }, [activeTab, foamLinks, works, skills, profile, isAdminLoggedIn, selectedLinkCategory, selectedWorkFilter]);
@@ -260,7 +274,7 @@
                 setTimeout(() => setToastMessage(''), 3000);
             };
 
-            // HELPER DETEKSI & SANITASI URL TARGET
+            // HELPER SANITASI URL TARGET
             const formatUrl = (url) => {
                 if (!url) return '#';
                 let cleanUrl = url.trim();
@@ -270,14 +284,14 @@
                 return cleanUrl;
             };
 
-            // ---------------- HANDLERS EDITABLE SEKSIONAL (WITH CLOUD SYNC) ----------------
+            // HANDLERS EDIT SEKSIONAL
             const handleSaveProfile = (e) => {
                 e.preventDefault();
                 const updated = { ...profile, ...profileForm };
                 setProfile(updated);
                 syncToGas('saveProfile', updated);
                 setShowProfileModal(false);
-                showToast('👤 Profil Utama Berhasil Diperbarui & Disinkronkan!');
+                showToast('👤 Profil Utama Berhasil Diperbarui!');
             };
 
             const handleSaveStatus = (e) => {
@@ -286,7 +300,7 @@
                 setProfile(updated);
                 syncToGas('saveProfile', updated);
                 setShowStatusModal(false);
-                showToast('✨ Status Proyek Diperbarui & Disinkronkan!');
+                showToast('✨ Status Proyek Diperbarui!');
             };
 
             const handleSaveQuote = (e) => {
@@ -295,7 +309,7 @@
                 setProfile(updated);
                 syncToGas('saveProfile', updated);
                 setShowQuoteModal(false);
-                showToast('💬 Quote Diperbarui & Disinkronkan!');
+                showToast('💬 Quote Diperbarui!');
             };
 
             const handleSaveAudio = (e) => {
@@ -304,7 +318,7 @@
                 setProfile(updated);
                 syncToGas('saveProfile', updated);
                 setShowAudioModal(false);
-                showToast('🎙️ Audio Podcast Diperbarui & Disinkronkan!');
+                showToast('🎙️ Audio Podcast Diperbarui!');
             };
 
             const handleSaveSpotlight = (e) => {
@@ -313,7 +327,7 @@
                 setProfile(updated);
                 syncToGas('saveProfile', updated);
                 setShowSpotlightModal(false);
-                showToast('🔥 Spotlight Banner Diperbarui & Disinkronkan!');
+                showToast('🔥 Spotlight Banner Diperbarui!');
             };
 
             const handleSaveSkills = (e) => {
@@ -321,7 +335,7 @@
                 setSkills(skillsListForm);
                 syncToGas('saveSkills', skillsListForm);
                 setShowSkillsModal(false);
-                showToast('📊 Skills Diperbarui & Disinkronkan!');
+                showToast('📊 Skills Diperbarui!');
             };
 
             const handleAddSkillItem = () => {
@@ -338,10 +352,10 @@
                 setProfile(updated);
                 syncToGas('saveProfile', updated);
                 setShowContactEditModal(false);
-                showToast('✉️ Teks Kontak Diperbarui & Disinkronkan!');
+                showToast('✉️ Teks Kontak Diperbarui!');
             };
 
-            // ---------------- HANDLERS FOAM LINK & WORKS (WITH CLOUD SYNC) ----------------
+            // HANDLERS FOAM LINK & WORKS
             const handleLinkClick = (id, url) => {
                 if (!url) return;
                 const targetUrl = formatUrl(url);
@@ -363,11 +377,11 @@
                 if (editingLink) {
                     targetLink = { ...linkForm, id: editingLink.id, clicks: editingLink.clicks };
                     setFoamLinks(foamLinks.map(item => item.id === editingLink.id ? targetLink : item));
-                    showToast('✅ Foam Link diperbarui & disinkronkan!');
+                    showToast('✅ Foam Link diperbarui!');
                 } else {
                     targetLink = { ...linkForm, id: Date.now(), clicks: 0 };
                     setFoamLinks([targetLink, ...foamLinks]);
-                    showToast('✨ Foam Link baru ditambahkan & disinkronkan!');
+                    showToast('✨ Foam Link baru ditambahkan!');
                 }
                 syncToGas('saveLink', targetLink);
                 setShowLinkModal(false);
@@ -387,11 +401,11 @@
                 if (editingWork) {
                     targetWork = { ...workForm, tags: processedTags, id: editingWork.id };
                     setWorks(works.map(item => item.id === editingWork.id ? targetWork : item));
-                    showToast('✅ Karya diperbarui & disinkronkan!');
+                    showToast('✅ Karya diperbarui!');
                 } else {
                     targetWork = { ...workForm, tags: processedTags, id: Date.now() };
                     setWorks([targetWork, ...works]);
-                    showToast('🎨 Karya baru ditambahkan & disinkronkan!');
+                    showToast('🎨 Karya baru ditambahkan!');
                 }
                 syncToGas('saveWork', targetWork);
                 setShowWorkModal(false);
@@ -406,13 +420,31 @@
 
             const handleLoginSubmit = (e) => {
                 e.preventDefault();
-                if (loginForm.username === 'admin' && (loginForm.password === 'edudigital' || loginForm.password === 'admin2026')) {
+                if (loginForm.username === adminCreds.username && loginForm.password === adminCreds.password) {
                     setIsAdminLoggedIn(true);
                     setShowLoginModal(false);
-                    showToast('🔓 Login Admin Berhasil! Mode Edit Cloud Aktif.');
+                    setLoginForm({ username: '', password: '' });
+                    showToast('🔓 Login Admin Berhasil!');
                 } else {
-                    showToast('❌ Username/Password Salah!');
+                    showToast('❌ Username atau Password Salah!');
                 }
+            };
+
+            const handleChangeCredsSubmit = (e) => {
+                e.preventDefault();
+                if (credsForm.currentPassword !== adminCreds.password) {
+                    showToast('❌ Password saat ini tidak cocok!');
+                    return;
+                }
+                const updated = {
+                    username: credsForm.newUsername || adminCreds.username,
+                    password: credsForm.newPassword || adminCreds.password
+                };
+                setAdminCreds(updated);
+                syncToGas('saveCredentials', updated);
+                setShowChangeCredsModal(false);
+                setCredsForm({ currentPassword: '', newUsername: '', newPassword: '' });
+                showToast('🔐 Kredensial Admin Diperbarui!');
             };
 
             const handleContactSubmit = (e) => {
@@ -421,7 +453,7 @@
                 setMessages([newMsg, ...messages]);
                 syncToGas('sendMessage', newMsg);
                 setContactForm({ name: '', email: '', subject: '', message: '' });
-                showToast('📬 Pesan Anda terkirim & disimpan ke Google Sheets!');
+                showToast('📬 Pesan Anda berhasil terkirim!');
             };
 
             // Filter Process
@@ -437,11 +469,11 @@
             });
 
             return (
-                <div className="flex min-h-screen relative p-3 md:p-6 gap-4 md:gap-6 max-w-[1440px] mx-auto">
+                <div className="flex min-h-screen relative p-3 sm:p-5 md:p-8 gap-4 md:gap-6 max-w-7xl mx-auto">
                     
                     {/* TOAST NOTIFICATION */}
                     {toastMessage && (
-                        <div className="fixed top-5 right-5 z-50 bg-[#3D2B27] text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 animate-bounce">
+                        <div className="fixed top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:right-5 sm:translate-x-0 z-50 bg-[#3D2B27] text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 animate-bounce max-w-[90vw] text-center justify-center">
                             <span>{toastMessage}</span>
                         </div>
                     )}
@@ -466,40 +498,40 @@
                             <i data-lucide="mail" className="w-5 h-5"></i>
                         </button>
                         <div className="w-8 h-[1px] bg-peach-200 my-0.5"></div>
-                        <button onClick={() => isAdminLoggedIn ? setActiveTab('admin') : setShowLoginModal(true)} className={`p-3 rounded-full transition-all ${isAdminLoggedIn ? 'bg-emerald-500 text-white' : 'hover:bg-peach-100'}`} title={isAdminLoggedIn ? "Panel Admin Active" : "Login Admin"}>
+                        <button onClick={() => isAdminLoggedIn ? setActiveTab('admin') : setShowLoginModal(true)} className={`p-3 rounded-full transition-all ${isAdminLoggedIn ? 'bg-emerald-500 text-white shadow-md' : 'hover:bg-peach-100'}`} title={isAdminLoggedIn ? "Panel Admin Active" : "Login Admin"}>
                             <i data-lucide={isAdminLoggedIn ? "user-check" : "lock"} className="w-5 h-5"></i>
                         </button>
                     </aside>
 
                     {/* MOBILE NAVBAR BOTTOM */}
-                    <nav className="md:hidden fixed bottom-3 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 py-2.5 px-5 bg-white/90 backdrop-blur-xl border border-white/90 rounded-full shadow-xl text-[#8C7A76]">
-                        <button onClick={() => setActiveTab('home')} className={`p-2 rounded-full ${activeTab === 'home' ? 'bg-peach-500 text-white' : ''}`}><i data-lucide="layout-grid" className="w-5 h-5"></i></button>
-                        <button onClick={() => setActiveTab('foam-links')} className={`p-2 rounded-full ${activeTab === 'foam-links' ? 'bg-peach-500 text-white' : ''}`}><i data-lucide="link-2" className="w-5 h-5"></i></button>
-                        <button onClick={() => setActiveTab('works')} className={`p-2 rounded-full ${activeTab === 'works' ? 'bg-peach-500 text-white' : ''}`}><i data-lucide="folder-git-2" className="w-5 h-5"></i></button>
-                        <button onClick={() => setActiveTab('contact')} className={`p-2 rounded-full ${activeTab === 'contact' ? 'bg-peach-500 text-white' : ''}`}><i data-lucide="mail" className="w-5 h-5"></i></button>
-                        <button onClick={() => isAdminLoggedIn ? setActiveTab('admin') : setShowLoginModal(true)} className={`p-2 rounded-full ${isAdminLoggedIn ? 'bg-emerald-500 text-white' : ''}`}><i data-lucide={isAdminLoggedIn ? "user-check" : "lock"} className="w-5 h-5"></i></button>
+                    <nav className="md:hidden fixed bottom-3 left-1/2 -translate-x-1/2 z-40 flex items-center justify-around w-[92vw] max-w-md py-2.5 px-3 bg-white/90 backdrop-blur-xl border border-white/90 rounded-full shadow-2xl text-[#8C7A76]">
+                        <button onClick={() => setActiveTab('home')} className={`p-2.5 rounded-full transition-all ${activeTab === 'home' ? 'bg-peach-500 text-white shadow-md' : 'hover:bg-peach-100'}`} title="Home"><i data-lucide="layout-grid" className="w-5 h-5"></i></button>
+                        <button onClick={() => setActiveTab('foam-links')} className={`p-2.5 rounded-full transition-all ${activeTab === 'foam-links' ? 'bg-peach-500 text-white shadow-md' : 'hover:bg-peach-100'}`} title="Links"><i data-lucide="link-2" className="w-5 h-5"></i></button>
+                        <button onClick={() => setActiveTab('works')} className={`p-2.5 rounded-full transition-all ${activeTab === 'works' ? 'bg-peach-500 text-white shadow-md' : 'hover:bg-peach-100'}`} title="Karya"><i data-lucide="folder-git-2" className="w-5 h-5"></i></button>
+                        <button onClick={() => setActiveTab('contact')} className={`p-2.5 rounded-full transition-all ${activeTab === 'contact' ? 'bg-peach-500 text-white shadow-md' : 'hover:bg-peach-100'}`} title="Kontak"><i data-lucide="mail" className="w-5 h-5"></i></button>
+                        <button onClick={() => isAdminLoggedIn ? setActiveTab('admin') : setShowLoginModal(true)} className={`p-2.5 rounded-full transition-all ${isAdminLoggedIn ? 'bg-emerald-500 text-white shadow-md' : 'hover:bg-peach-100'}`} title="Admin"><i data-lucide={isAdminLoggedIn ? "user-check" : "lock"} className="w-5 h-5"></i></button>
                     </nav>
 
                     {/* MAIN CONTENT CONTAINER */}
-                    <main className="flex-1 md:ml-20 flex flex-col gap-6 pb-20 md:pb-6">
+                    <main className="flex-1 md:ml-20 flex flex-col gap-5 md:gap-6 pb-20 md:pb-6 w-full overflow-x-hidden">
                         
-                        {/* HEADER PROFILE BAR (EDITABLE) */}
-                        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2">
+                        {/* HEADER PROFILE BAR */}
+                        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-1">
                             <div className="relative group">
-                                <div className="flex items-center gap-3">
-                                    <span className="text-xs font-semibold tracking-wider text-peach-600 uppercase bg-peach-100 px-3 py-1 rounded-full border border-peach-200">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-[10px] sm:text-xs font-semibold tracking-wider text-peach-600 uppercase bg-peach-100 px-3 py-1 rounded-full border border-peach-200">
                                         Personal Portfolio & Bio Hub
                                     </span>
                                     {isAdminLoggedIn && (
                                         <button onClick={() => { setProfileForm(profile); setShowProfileModal(true); }} className="text-xs font-bold bg-amber-500 text-white px-2.5 py-1 rounded-full hover:bg-amber-600 flex items-center gap-1 shadow-sm">
-                                            <i data-lucide="edit-3" className="w-3.5 h-3.5"></i> Edit Header & Profile
+                                            <i data-lucide="edit-3" className="w-3.5 h-3.5"></i> Edit Profile
                                         </button>
                                     )}
                                 </div>
-                                <h1 className="font-serif font-bold text-3xl md:text-5xl text-[#3D2B27] mt-2 tracking-tight">
+                                <h1 className="font-serif font-bold text-2xl sm:text-4xl md:text-5xl text-[#3D2B27] mt-2 tracking-tight">
                                     {profile.greeting}
                                 </h1>
-                                <p className="text-xs md:text-sm text-[#8C7A76] mt-1 flex items-center gap-2">
+                                <p className="text-xs sm:text-sm text-[#8C7A76] mt-1 flex flex-wrap items-center gap-1.5 sm:gap-2">
                                     <span className="font-semibold text-[#3D2B27]">{profile.name}</span>
                                     <span>·</span>
                                     <span>{profile.role}</span>
@@ -507,9 +539,9 @@
                             </div>
 
                             {/* Weather Card */}
-                            <div className="flex items-center gap-3 relative">
-                                <div className="glass-card px-4 py-2.5 rounded-2xl flex items-center gap-3 text-xs">
-                                    <div className="w-8 h-8 rounded-full bg-orange-100 text-peach-600 flex items-center justify-center">
+                            <div className="flex items-center gap-3">
+                                <div className="glass-card px-4 py-2.5 rounded-2xl flex items-center gap-3 text-xs w-full sm:w-auto">
+                                    <div className="w-8 h-8 rounded-full bg-orange-100 text-peach-600 flex items-center justify-center flex-shrink-0">
                                         <i data-lucide="sun" className="w-4 h-4"></i>
                                     </div>
                                     <div>
@@ -520,58 +552,33 @@
                             </div>
                         </header>
 
-                        {/* SEARCH BAR */}
-                        <div className="glass-card p-2 rounded-2xl flex items-center gap-3 border border-white/90">
-                            <i data-lucide="sparkles" className="w-5 h-5 text-peach-500 ml-3"></i>
-                            <input 
-                                type="text" 
-                                placeholder="Cari foam link, karya gambar, atau artikel naskah..." 
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-transparent border-none text-xs md:text-sm text-[#3D2B27] placeholder-[#a4938f] focus:outline-none"
-                            />
-                            {searchQuery && (
-                                <button onClick={() => setSearchQuery('')} className="p-1 hover:bg-peach-100 rounded-full mr-1">
-                                    <i data-lucide="x" className="w-4 h-4 text-[#8C7A76]"></i>
-                                </button>
-                            )}
-                            <button onClick={() => setActiveTab('foam-links')} className="bg-peach-500 hover:bg-peach-600 text-white p-2.5 rounded-xl flex items-center justify-center transition-all shadow-md">
-                                <i data-lucide="arrow-right" className="w-4 h-4"></i>
-                            </button>
-                        </div>
-
-                        {/* ---------------- TAB 1: BENTO DASHBOARD (HOME) ---------------- */}
+                        {/* ---------------- TAB 1: DASHBOARD BENTO HOME ---------------- */}
                         {activeTab === 'home' && (
-                            <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5">
                                 
-                                {/* 1. QUOTE CARD (EDITABLE) */}
-                                <div className="md:col-span-4 glass-card p-6 rounded-3xl flex flex-col justify-between relative group">
+                                {/* 1. QUOTE CARD */}
+                                <div className="md:col-span-5 glass-card p-5 sm:p-6 rounded-3xl flex flex-col justify-between relative group">
                                     {isAdminLoggedIn && (
                                         <button onClick={() => { setQuoteForm({ quote: profile.quote, quoteSub: profile.quoteSub, author: profile.author }); setShowQuoteModal(true); }} className="absolute top-3 right-3 z-10 p-2 bg-amber-500 text-white rounded-xl shadow-md hover:bg-amber-600">
                                             <i data-lucide="edit-3" className="w-3.5 h-3.5"></i>
                                         </button>
                                     )}
-                                    <div>
-                                        <div className="w-9 h-9 rounded-2xl bg-peach-100 text-peach-600 flex items-center justify-center mb-4">
-                                            <i data-lucide="quote" className="w-4 h-4"></i>
-                                        </div>
-                                        <p className="font-serif text-lg font-medium text-[#3D2B27] leading-relaxed">
-                                            "{profile.quote}"
-                                        </p>
-                                        <p className="text-xs text-[#8C7A76] mt-3 leading-normal italic">
-                                            {profile.quoteSub}
-                                        </p>
+                                    <div className="flex items-center justify-between text-peach-500 mb-4">
+                                        <i data-lucide="quote" className="w-6 h-6"></i>
+                                        <span className="text-xs text-[#8C7A76]">Daily Reflection</span>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <p className="font-serif text-lg sm:text-xl text-[#3D2B27] leading-relaxed">"{profile.quote}"</p>
+                                        <p className="text-xs text-[#8C7A76] italic">{profile.quoteSub}</p>
                                     </div>
                                     <div className="mt-6 pt-4 border-t border-peach-200/50 flex items-center justify-between text-xs text-[#8C7A76]">
-                                        <span className="font-medium text-[#3D2B27]">― {profile.author}</span>
-                                        <button onClick={() => setActiveTab('foam-links')} className="text-peach-600 font-bold hover:underline flex items-center gap-1">
-                                            Links <i data-lucide="arrow-up-right" className="w-3.5 h-3.5"></i>
-                                        </button>
+                                        <span>— {profile.author}</span>
+                                        <i data-lucide="heart" className="w-4 h-4 text-rose-400"></i>
                                     </div>
                                 </div>
 
-                                {/* 2. STATUS CARD (EDITABLE) */}
-                                <div className="md:col-span-4 glass-card p-6 rounded-3xl flex flex-col justify-between relative group">
+                                {/* 2. STATUS CARD */}
+                                <div className="md:col-span-4 glass-card p-5 sm:p-6 rounded-3xl flex flex-col justify-between relative group">
                                     {isAdminLoggedIn && (
                                         <button onClick={() => { setStatusForm({ availableForHire: profile.availableForHire, statusTitle: profile.statusTitle, statusBadge: profile.statusBadge, statusDesc: profile.statusDesc }); setShowStatusModal(true); }} className="absolute top-3 right-3 z-10 p-2 bg-amber-500 text-white rounded-xl shadow-md hover:bg-amber-600">
                                             <i data-lucide="edit-3" className="w-3.5 h-3.5"></i>
@@ -582,8 +589,8 @@
                                         <i data-lucide="sparkles" className="w-4 h-4 text-peach-500"></i>
                                     </div>
                                     <div className="my-4">
-                                        <div className="font-serif font-bold text-3xl md:text-4xl text-[#3D2B27]">
-                                            {profile.statusTitle}{' '}
+                                        <div className="font-serif font-bold text-2xl sm:text-3xl md:text-4xl text-[#3D2B27] flex flex-wrap items-center gap-2">
+                                            <span>{profile.statusTitle}</span>
                                             <span className={`text-xs font-sans font-normal px-2.5 py-1 rounded-full border ${profile.availableForHire ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 'text-rose-600 bg-rose-50 border-rose-200'}`}>
                                                 {profile.statusBadge}
                                             </span>
@@ -595,86 +602,73 @@
                                     </button>
                                 </div>
 
-                                {/* 3. SKILLS MASTERY WIDGET (EDITABLE LIST) */}
-                                <div className="md:col-span-4 glass-card p-6 rounded-3xl flex flex-col justify-between relative group">
+                                {/* 3. SKILLS CARD */}
+                                <div className="md:col-span-3 glass-card p-5 sm:p-6 rounded-3xl flex flex-col justify-between relative group">
                                     {isAdminLoggedIn && (
                                         <button onClick={() => { setSkillsListForm([...skills]); setShowSkillsModal(true); }} className="absolute top-3 right-3 z-10 p-2 bg-amber-500 text-white rounded-xl shadow-md hover:bg-amber-600">
                                             <i data-lucide="edit-3" className="w-3.5 h-3.5"></i>
                                         </button>
                                     )}
                                     <div className="flex items-center justify-between mb-2">
-                                        <span className="text-xs font-semibold text-[#8C7A76] uppercase tracking-wider">Keahlian Utama</span>
-                                        <span className="text-xs font-bold text-peach-600">
-                                            {Math.round(skills.reduce((a,b)=>a+Number(b.percentage),0) / (skills.length || 1))}% Avg
-                                        </span>
+                                        <span className="text-xs font-semibold text-[#8C7A76] uppercase tracking-wider">Skill Focus</span>
+                                        <i data-lucide="bar-chart-3" className="w-4 h-4 text-peach-500"></i>
                                     </div>
                                     <div className="space-y-3 my-2">
-                                        {skills.map((s) => (
-                                            <div key={s.id} className="space-y-1">
-                                                <div className="flex justify-between text-xs">
-                                                    <span className="font-semibold text-[#3D2B27]">{s.name}</span>
-                                                    <span className="text-[#8C7A76]">{s.percentage}%</span>
+                                        {skills.map(skill => (
+                                            <div key={skill.id} className="space-y-1">
+                                                <div className="flex justify-between text-xs font-medium">
+                                                    <span>{skill.name}</span>
+                                                    <span className="text-peach-600 font-bold">{skill.percentage}%</span>
                                                 </div>
-                                                <div className="w-full bg-peach-100 h-2 rounded-full overflow-hidden">
-                                                    <div className="bg-peach-500 h-full rounded-full transition-all duration-500" style={{ width: `${s.percentage}%` }}></div>
+                                                <div className="w-full h-1.5 bg-peach-100 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-peach-500 rounded-full" style={{ width: `${skill.percentage}%` }}></div>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
-                                    <button onClick={() => setActiveTab('works')} className="w-full py-2 bg-peach-100 hover:bg-peach-200 text-peach-700 text-xs font-semibold rounded-xl transition-colors text-center mt-2">
-                                        Lihat Portofolio Karya
+                                    <button onClick={() => setActiveTab('works')} className="text-xs text-peach-600 font-semibold flex items-center gap-1 hover:underline pt-2">
+                                        Lihat Hasil Karya <i data-lucide="arrow-right" className="w-3.5 h-3.5"></i>
                                     </button>
                                 </div>
 
-                                {/* 4. SPOTLIGHT FOAM LINK BANNER (EDITABLE) */}
-                                <div className="md:col-span-8 glass-card p-6 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 bg-gradient-to-r from-white/90 via-peach-50/70 to-amber-50/70 border-2 border-peach-300/60 relative group">
+                                {/* 4. SPOTLIGHT BANNER */}
+                                <div className="md:col-span-8 glass-card p-5 sm:p-6 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-peach-500 via-peach-600 to-amber-600 text-white relative group">
                                     {isAdminLoggedIn && (
-                                        <button onClick={() => { setSpotlightForm({ spotlightBadge: profile.spotlightBadge, spotlightTitle: profile.spotlightTitle, spotlightDesc: profile.spotlightDesc }); setShowSpotlightModal(true); }} className="absolute top-3 right-3 z-10 p-2 bg-amber-500 text-white rounded-xl shadow-md hover:bg-amber-600">
+                                        <button onClick={() => { setSpotlightForm({ spotlightBadge: profile.spotlightBadge, spotlightTitle: profile.spotlightTitle, spotlightDesc: profile.spotlightDesc }); setShowSpotlightModal(true); }} className="absolute top-3 right-3 z-10 p-2 bg-white text-peach-600 rounded-xl shadow-md hover:bg-peach-50">
                                             <i data-lucide="edit-3" className="w-3.5 h-3.5"></i>
                                         </button>
                                     )}
-                                    <div className="space-y-2 text-left">
-                                        <span className="text-[10px] font-bold text-white bg-peach-500 px-3 py-1 rounded-full uppercase tracking-wider">
+                                    <div className="space-y-2 text-center sm:text-left">
+                                        <span className="text-[10px] font-bold bg-white/20 px-3 py-1 rounded-full uppercase tracking-wider">
                                             {profile.spotlightBadge}
                                         </span>
-                                        <h3 className="font-serif font-bold text-2xl text-[#3D2B27]">
-                                            {profile.spotlightTitle}
-                                        </h3>
-                                        <p className="text-xs text-[#8C7A76]">
-                                            {profile.spotlightDesc}
-                                        </p>
+                                        <h3 className="font-serif font-bold text-xl sm:text-2xl leading-snug">{profile.spotlightTitle}</h3>
+                                        <p className="text-xs text-peach-100 max-w-lg">{profile.spotlightDesc}</p>
                                     </div>
-                                    <button 
-                                        onClick={() => setActiveTab('foam-links')}
-                                        className="px-6 py-3.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-2xl shadow-lg shadow-peach-500/30 whitespace-nowrap transition-all flex items-center gap-2 hover:scale-105"
-                                    >
-                                        Buka Foam Links Hub <i data-lucide="arrow-right" className="w-4 h-4"></i>
+                                    <button onClick={() => setActiveTab('foam-links')} className="bg-white text-peach-600 hover:bg-peach-50 font-bold px-5 py-3 rounded-2xl text-xs whitespace-nowrap shadow-lg flex items-center gap-2">
+                                        Buka Foam Links <i data-lucide="external-link" className="w-4 h-4"></i>
                                     </button>
                                 </div>
 
-                                {/* 5. AUDIO PODCAST WIDGET (EDITABLE) */}
-                                <div className="md:col-span-4 glass-card p-5 rounded-3xl flex flex-col justify-between relative group">
+                                {/* 5. AUDIO PODCAST LOG */}
+                                <div className="md:col-span-4 glass-card p-5 sm:p-6 rounded-3xl flex items-center justify-between relative group">
                                     {isAdminLoggedIn && (
                                         <button onClick={() => { setAudioForm({ audioTitle: profile.audioTitle, audioEp: profile.audioEp, audioCoverTag: profile.audioCoverTag }); setShowAudioModal(true); }} className="absolute top-3 right-3 z-10 p-2 bg-amber-500 text-white rounded-xl shadow-md hover:bg-amber-600">
                                             <i data-lucide="edit-3" className="w-3.5 h-3.5"></i>
                                         </button>
                                     )}
-                                    <div className="text-xs font-semibold text-[#8C7A76] uppercase">Audio Log / Podcast</div>
-                                    <div className="flex items-center gap-3 my-2">
-                                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-peach-500 to-amber-700 text-white flex items-center justify-center font-bold text-xs shadow-md">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 rounded-2xl bg-peach-500 text-white flex items-center justify-center font-bold text-xs shadow-md">
                                             {profile.audioCoverTag}
                                         </div>
                                         <div>
-                                            <div className="font-bold text-sm text-[#3D2B27]">{profile.audioTitle}</div>
-                                            <div className="text-xs text-[#8C7A76]">{profile.audioEp}</div>
+                                            <h4 className="font-bold text-sm text-[#3D2B27]">{profile.audioTitle}</h4>
+                                            <p className="text-xs text-[#8C7A76]">{profile.audioEp}</p>
                                         </div>
-                                        <button onClick={() => setIsPlayingAudio(!isPlayingAudio)} className="ml-auto w-10 h-10 rounded-full bg-peach-500 hover:bg-peach-600 text-white flex items-center justify-center shadow-lg transition-all">
-                                            <i data-lucide={isPlayingAudio ? "pause" : "play"} className="w-4 h-4 fill-white"></i>
-                                        </button>
                                     </div>
-                                    <div className="w-full bg-peach-200/60 h-1.5 rounded-full overflow-hidden">
-                                        <div className={`bg-peach-500 h-full transition-all duration-300 ${isPlayingAudio ? 'w-2/3 animate-pulse' : 'w-1/3'}`}></div>
-                                    </div>
+                                    <button onClick={() => setIsPlayingAudio(!isPlayingAudio)} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isPlayingAudio ? 'bg-rose-500 text-white' : 'bg-peach-500 text-white hover:bg-peach-600'}`}>
+                                        <i data-lucide={isPlayingAudio ? "pause" : "play"} className="w-5 h-5"></i>
+                                    </button>
                                 </div>
 
                             </div>
@@ -682,254 +676,208 @@
 
                         {/* ---------------- TAB 2: FOAM LINKS HUB ---------------- */}
                         {activeTab === 'foam-links' && (
-                            <div className="space-y-6">
-                                <div className="glass-card p-6 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div className="space-y-5">
+                                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                                     <div>
-                                        <span className="text-xs font-bold text-peach-600 bg-peach-100 px-3 py-1 rounded-full uppercase tracking-wider">
-                                            Interactive Bio & Link Hub
-                                        </span>
-                                        <h2 className="font-serif font-bold text-2xl md:text-3xl text-[#3D2B27] mt-2">
-                                            Foam Links Hub 🫧
-                                        </h2>
-                                        <p className="text-xs text-[#8C7A76] mt-1">
-                                            Klik tautan di bawah ini untuk terhubung langsung dengan media sosial, karya, dan layanan saya.
-                                        </p>
+                                        <h2 className="font-serif font-bold text-2xl sm:text-3xl text-[#3D2B27]">Foam Links Hub 🔗</h2>
+                                        <p className="text-xs text-[#8C7A76] mt-1">Kumpulan tautan media sosial, portofolio, dan layanan resmi saya.</p>
                                     </div>
-
                                     {isAdminLoggedIn && (
-                                        <button 
-                                            onClick={() => { setEditingLink(null); setLinkForm({ title: '', category: 'Social Media', icon: 'link', url: '', description: '', isFeatured: false }); setShowLinkModal(true); }}
-                                            className="px-4 py-2.5 bg-peach-500 hover:bg-peach-600 text-white text-xs font-bold rounded-2xl shadow-lg flex items-center gap-2"
-                                        >
-                                            <i data-lucide="plus-circle" className="w-4 h-4"></i> Tambah Foam Link
+                                        <button onClick={() => { setEditingLink(null); setLinkForm({ title: '', category: 'Social Media', icon: 'link', url: '', description: '', isFeatured: false }); setShowLinkModal(true); }} className="w-full sm:w-auto px-4 py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2">
+                                            <i data-lucide="plus" className="w-4 h-4"></i> Tambah Tautan Baru
                                         </button>
                                     )}
                                 </div>
 
-                                {/* CATEGORY FILTER CHIPS */}
-                                <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                                    {['All', 'Social Media', 'Design Showcase', 'Code', 'Services', 'Lifestyle'].map((cat) => (
-                                        <button
-                                            key={cat}
-                                            onClick={() => setSelectedLinkCategory(cat)}
-                                            className={`px-4 py-2 rounded-2xl text-xs font-semibold whitespace-nowrap transition-all ${selectedLinkCategory === cat ? 'bg-peach-500 text-white shadow-md' : 'glass-card text-[#8C7A76] hover:bg-white'}`}
-                                        >
-                                            {cat}
-                                        </button>
-                                    ))}
+                                {/* SEARCH & CATEGORY FILTER */}
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                    <div className="relative flex-1">
+                                        <i data-lucide="search" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8C7A76]"></i>
+                                        <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Cari tautan atau platform..." className="w-full pl-9 pr-4 py-2.5 rounded-2xl glass-card text-xs focus:outline-none focus:ring-2 focus:ring-peach-400" />
+                                    </div>
+                                    <div className="flex gap-2 overflow-x-auto pb-1">
+                                        {['All', 'Social Media', 'Design Showcase', 'Code', 'Services'].map(cat => (
+                                            <button key={cat} onClick={() => setSelectedLinkCategory(cat)} className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${selectedLinkCategory === cat ? 'bg-peach-500 text-white shadow-md' : 'glass-card text-[#8C7A76] hover:bg-peach-100'}`}>
+                                                {cat}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
 
-                                {/* FOAM LINKS GRID */}
+                                {/* LINKS LIST */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {filteredLinks.map((link) => (
-                                        <div 
-                                            key={link.id}
-                                            onClick={() => handleLinkClick(link.id, link.url)}
-                                            className={`glass-card p-5 rounded-3xl flex items-center justify-between gap-4 cursor-pointer hover:scale-[1.015] transition-all group relative overflow-hidden ${link.isFeatured ? 'border-2 border-peach-400/80 bg-gradient-to-r from-white via-peach-50/50 to-white' : ''}`}
-                                        >
-                                            {link.isFeatured && (
-                                                <span className="absolute top-0 right-0 bg-peach-500 text-white text-[9px] font-bold px-3 py-0.5 rounded-bl-xl uppercase tracking-wider">
-                                                    Featured
-                                                </span>
-                                            )}
-
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-2xl bg-peach-100 text-peach-600 flex items-center justify-center group-hover:bg-peach-500 group-hover:text-white transition-all shadow-sm flex-shrink-0">
-                                                    <i data-lucide={link.icon || "link"} className="w-6 h-6"></i>
+                                    {filteredLinks.map(link => (
+                                        <div key={link.id} onClick={() => handleLinkClick(link.id, link.url)} className="glass-card p-5 rounded-3xl flex items-center justify-between gap-4 cursor-pointer hover:scale-[1.01] transition-all group border-l-4 border-l-peach-500 relative">
+                                            <div className="flex items-center gap-3.5">
+                                                <div className="w-12 h-12 rounded-2xl bg-peach-100 text-peach-600 flex items-center justify-center font-bold text-lg group-hover:bg-peach-500 group-hover:text-white transition-colors">
+                                                    <i data-lucide={link.icon || "link"} className="w-5 h-5"></i>
                                                 </div>
                                                 <div>
                                                     <div className="flex items-center gap-2">
-                                                        <h4 className="font-bold text-sm text-[#3D2B27] group-hover:text-peach-600 transition-colors">
-                                                            {link.title}
-                                                        </h4>
-                                                        <span className="text-[10px] text-[#8C7A76] bg-peach-100/70 px-2 py-0.5 rounded-md">
-                                                            {link.category}
-                                                        </span>
+                                                        <h3 className="font-bold text-sm text-[#3D2B27] group-hover:text-peach-600 transition-colors">{link.title}</h3>
+                                                        {link.isFeatured && <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">POPULAR</span>}
                                                     </div>
-                                                    <p className="text-xs text-[#8C7A76] mt-0.5 line-clamp-1">
-                                                        {link.description}
-                                                    </p>
+                                                    <p className="text-xs text-[#8C7A76] line-clamp-1 mt-0.5">{link.description}</p>
+                                                    <span className="text-[10px] text-peach-500 font-semibold mt-1 block">{link.clicks || 0} orang mengeklik</span>
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center gap-2 flex-shrink-0">
-                                                <button 
-                                                    onClick={(e) => handleCopyLink(e, link.url)} 
-                                                    className="p-2 hover:bg-peach-200 rounded-xl text-[#8C7A76] hover:text-peach-700 transition-colors"
-                                                    title="Salin Link"
-                                                >
+                                            <div className="flex items-center gap-2">
+                                                <button onClick={(e) => handleCopyLink(e, link.url)} className="p-2 rounded-xl bg-peach-50 hover:bg-peach-200 text-peach-700 transition-colors" title="Salin Link">
                                                     <i data-lucide="copy" className="w-4 h-4"></i>
                                                 </button>
-
                                                 {isAdminLoggedIn && (
-                                                    <div className="flex items-center gap-1 bg-white/90 p-1 rounded-xl border border-peach-200">
-                                                        <button onClick={(e) => { e.stopPropagation(); setEditingLink(link); setLinkForm(link); setShowLinkModal(true); }} className="p-1 hover:bg-amber-100 text-amber-700 rounded-lg">
-                                                            <i data-lucide="edit-2" className="w-3.5 h-3.5"></i>
+                                                    <>
+                                                        <button onClick={(e) => { e.stopPropagation(); setEditingLink(link); setLinkForm(link); setShowLinkModal(true); }} className="p-2 rounded-xl bg-amber-100 text-amber-700 hover:bg-amber-200">
+                                                            <i data-lucide="edit-3" className="w-4 h-4"></i>
                                                         </button>
-                                                        <button onClick={(e) => { e.stopPropagation(); handleDeleteLink(link.id); }} className="p-1 hover:bg-rose-100 text-rose-700 rounded-lg">
-                                                            <i data-lucide="trash-2" className="w-3.5 h-3.5"></i>
+                                                        <button onClick={(e) => { e.stopPropagation(); handleDeleteLink(link.id); }} className="p-2 rounded-xl bg-rose-100 text-rose-700 hover:bg-rose-200">
+                                                            <i data-lucide="trash-2" className="w-4 h-4"></i>
                                                         </button>
+                                                    </>
+                                                )}
+                                                <i data-lucide="chevron-right" className="w-5 h-5 text-[#8C7A76] group-hover:translate-x-1 transition-transform"></i>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ---------------- TAB 3: HASIL KARYA ---------------- */}
+                        {activeTab === 'works' && (
+                            <div className="space-y-5">
+                                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                                    <div>
+                                        <h2 className="font-serif font-bold text-2xl sm:text-3xl text-[#3D2B27]">Hasil Karya & Tulisan 🎨</h2>
+                                        <p className="text-xs text-[#8C7A76] mt-1">Showcase desain visual, prototype, dan artikel esai.</p>
+                                    </div>
+                                    {isAdminLoggedIn && (
+                                        <button onClick={() => { setEditingWork(null); setWorkForm({ workType: 'image', title: '', subtitle: '', category: 'Visual Work', description: '', fullContent: '', image: '', tags: '', demoUrl: '' }); setShowWorkModal(true); }} className="w-full sm:w-auto px-4 py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2">
+                                            <i data-lucide="plus" className="w-4 h-4"></i> Tambah Karya Baru
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* WORK FILTER BUTTONS */}
+                                <div className="flex gap-2">
+                                    <button onClick={() => setSelectedWorkFilter('all')} className={`px-4 py-2 rounded-xl text-xs font-semibold ${selectedWorkFilter === 'all' ? 'bg-peach-500 text-white shadow-md' : 'glass-card text-[#8C7A76]'}`}>Semua Karya</button>
+                                    <button onClick={() => setSelectedWorkFilter('image')} className={`px-4 py-2 rounded-xl text-xs font-semibold ${selectedWorkFilter === 'image' ? 'bg-peach-500 text-white shadow-md' : 'glass-card text-[#8C7A76]'}`}>🖼️ Visual & Gambar</button>
+                                    <button onClick={() => setSelectedWorkFilter('text')} className={`px-4 py-2 rounded-xl text-xs font-semibold ${selectedWorkFilter === 'text' ? 'bg-peach-500 text-white shadow-md' : 'glass-card text-[#8C7A76]'}`}>📝 Artikel & Teks</button>
+                                </div>
+
+                                {/* WORKS GRID */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    {filteredWorks.map(work => (
+                                        <div key={work.id} className="glass-card rounded-3xl overflow-hidden flex flex-col justify-between group hover:shadow-xl transition-all">
+                                            <div>
+                                                {work.image && (
+                                                    <div className="h-48 sm:h-56 w-full overflow-hidden relative">
+                                                        <img src={work.image} alt={work.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                        <span className="absolute top-3 left-3 text-[10px] font-bold bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-peach-700 shadow-sm">
+                                                            {work.category}
+                                                        </span>
                                                     </div>
                                                 )}
-
-                                                <div className="w-8 h-8 rounded-full bg-peach-100 text-peach-600 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
-                                                    <i data-lucide="arrow-up-right" className="w-4 h-4"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* ---------------- TAB 3: WORKS SHOWCASE ---------------- */}
-                        {activeTab === 'works' && (
-                            <div className="space-y-6">
-                                <div className="glass-card p-6 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                    <div>
-                                        <span className="text-xs font-bold text-peach-600 bg-peach-100 px-3 py-1 rounded-full uppercase">
-                                            Portofolio Works & Articles
-                                        </span>
-                                        <h2 className="font-serif font-bold text-2xl md:text-3xl text-[#3D2B27] mt-2">
-                                            Hasil Karya (Gambar & Teks) 🎨📝
-                                        </h2>
-                                        <p className="text-xs text-[#8C7A76] mt-1">
-                                            Tampilan hasil karya desain visual serta artikel tulisan esai teknis.
-                                        </p>
-                                    </div>
-
-                                    {isAdminLoggedIn && (
-                                        <button 
-                                            onClick={() => { setEditingWork(null); setWorkForm({ workType: 'image', title: '', subtitle: '', category: 'Visual Work', description: '', fullContent: '', image: '', tags: '', demoUrl: '' }); setShowWorkModal(true); }}
-                                            className="px-4 py-2.5 bg-peach-500 hover:bg-peach-600 text-white text-xs font-bold rounded-2xl shadow-lg flex items-center gap-2"
-                                        >
-                                            <i data-lucide="plus-circle" className="w-4 h-4"></i> Tambah Karya Baru
-                                        </button>
-                                    )}
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <button onClick={() => setSelectedWorkFilter('all')} className={`px-4 py-2 rounded-2xl text-xs font-semibold ${selectedWorkFilter === 'all' ? 'bg-peach-500 text-white' : 'glass-card text-[#8C7A76]'}`}>
-                                        Semua Karya ({works.length})
-                                    </button>
-                                    <button onClick={() => setSelectedWorkFilter('image')} className={`px-4 py-2 rounded-2xl text-xs font-semibold ${selectedWorkFilter === 'image' ? 'bg-peach-500 text-white' : 'glass-card text-[#8C7A76]'}`}>
-                                        🖼️ Visual & Gambar ({works.filter(w=>w.workType==='image').length})
-                                    </button>
-                                    <button onClick={() => setSelectedWorkFilter('text')} className={`px-4 py-2 rounded-2xl text-xs font-semibold ${selectedWorkFilter === 'text' ? 'bg-peach-500 text-white' : 'glass-card text-[#8C7A76]'}`}>
-                                        📝 Artikel & Teks ({works.filter(w=>w.workType==='text').length})
-                                    </button>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {filteredWorks.map((work) => (
-                                        <div key={work.id} className="glass-card rounded-3xl overflow-hidden flex flex-col justify-between group relative">
-                                            {isAdminLoggedIn && (
-                                                <div className="absolute top-3 right-3 z-10 flex gap-1.5 bg-white/90 backdrop-blur-md p-1.5 rounded-2xl border border-peach-200 shadow-md">
-                                                    <button onClick={() => { setEditingWork(work); setWorkForm({ ...work, tags: work.tags.join(', ') }); setShowWorkModal(true); }} className="p-1.5 hover:bg-amber-100 text-amber-700 rounded-xl">
-                                                        <i data-lucide="edit-3" className="w-4 h-4"></i>
-                                                    </button>
-                                                    <button onClick={() => handleDeleteWork(work.id)} className="p-1.5 hover:bg-rose-100 text-rose-700 rounded-xl">
-                                                        <i data-lucide="trash-2" className="w-4 h-4"></i>
-                                                    </button>
-                                                </div>
-                                            )}
-
-                                            {work.workType === 'image' ? (
-                                                <div className="h-52 overflow-hidden relative">
-                                                    <img src={work.image || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80"} alt={work.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                                    <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-md text-[#3D2B27] font-bold text-[10px] px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
-                                                        🖼️ Visual Showcase
-                                                    </span>
-                                                </div>
-                                            ) : (
-                                                <div className="p-6 bg-gradient-to-br from-peach-100/80 to-amber-100/60 border-b border-peach-200/60 relative">
-                                                    <span className="bg-peach-500 text-white font-bold text-[10px] px-3 py-1 rounded-full shadow-sm flex items-center gap-1 w-max mb-2">
-                                                        📝 Artikel / Naskah Teks
-                                                    </span>
-                                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">{work.title}</h3>
-                                                </div>
-                                            )}
-
-                                            <div className="p-6 flex-1 flex flex-col justify-between space-y-3">
-                                                <div>
-                                                    {work.workType === 'image' && <h3 className="font-serif font-bold text-xl text-[#3D2B27] mb-1">{work.title}</h3>}
-                                                    <p className="text-xs font-semibold text-peach-600 mb-2">{work.subtitle}</p>
-                                                    <p className="text-xs text-[#8C7A76] leading-relaxed line-clamp-3">{work.description}</p>
-                                                </div>
-
-                                                <div className="pt-4 border-t border-peach-200/50 flex items-center justify-between">
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {work.tags.map((tag, idx) => (
-                                                            <span key={idx} className="text-[10px] bg-peach-100 text-peach-700 font-semibold px-2 py-0.5 rounded-md">
-                                                                {tag}
-                                                            </span>
+                                                <div className="p-5 space-y-2">
+                                                    <div className="flex justify-between items-start gap-2">
+                                                        <div>
+                                                            <h3 className="font-serif font-bold text-lg text-[#3D2B27]">{work.title}</h3>
+                                                            <p className="text-xs text-[#8C7A76] italic">{work.subtitle}</p>
+                                                        </div>
+                                                        {isAdminLoggedIn && (
+                                                            <div className="flex gap-1">
+                                                                <button onClick={() => { setEditingWork(work); setWorkForm({ ...work, tags: Array.isArray(work.tags) ? work.tags.join(', ') : work.tags }); setShowWorkModal(true); }} className="p-1.5 bg-amber-100 text-amber-700 rounded-lg">
+                                                                    <i data-lucide="edit-3" className="w-3.5 h-3.5"></i>
+                                                                </button>
+                                                                <button onClick={() => handleDeleteWork(work.id)} className="p-1.5 bg-rose-100 text-rose-700 rounded-lg">
+                                                                    <i data-lucide="trash-2" className="w-3.5 h-3.5"></i>
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-xs text-[#8C7A76] line-clamp-3 leading-relaxed">{work.description}</p>
+                                                    
+                                                    {/* TAGS */}
+                                                    <div className="flex flex-wrap gap-1.5 pt-2">
+                                                        {Array.isArray(work.tags) && work.tags.map((tag, idx) => (
+                                                            <span key={idx} className="text-[10px] bg-peach-100 text-peach-700 font-semibold px-2.5 py-0.5 rounded-md">#{tag}</span>
                                                         ))}
                                                     </div>
-
-                                                    {work.workType === 'text' ? (
-                                                        <button 
-                                                            onClick={() => setActiveArticleModal(work)} 
-                                                            className="text-xs font-bold text-peach-600 hover:text-peach-700 flex items-center gap-1 bg-peach-100 px-3 py-1.5 rounded-xl transition-colors"
-                                                        >
-                                                            Baca Naskah <i data-lucide="book-open" className="w-3.5 h-3.5"></i>
-                                                        </button>
-                                                    ) : (
-                                                        work.demoUrl && (
-                                                            <a href={formatUrl(work.demoUrl)} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-peach-600 hover:text-peach-700 flex items-center gap-1">
-                                                                Demo Proyek <i data-lucide="external-link" className="w-3.5 h-3.5"></i>
-                                                            </a>
-                                                        )
-                                                    )}
                                                 </div>
                                             </div>
 
+                                            <div className="p-5 pt-0 flex gap-2">
+                                                {work.workType === 'text' ? (
+                                                    <button onClick={() => setActiveArticleModal(work)} className="w-full py-2 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all text-center">
+                                                        Baca Artikel Utuh 📖
+                                                    </button>
+                                                ) : (
+                                                    work.demoUrl && (
+                                                        <a href={formatUrl(work.demoUrl)} target="_blank" rel="noopener noreferrer" className="w-full py-2 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all text-center flex items-center justify-center gap-1">
+                                                            Kunjungi Proyek <i data-lucide="external-link" className="w-3.5 h-3.5"></i>
+                                                        </a>
+                                                    )
+                                                )}
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
 
-                        {/* ---------------- TAB 4: CONTACT FORM (EDITABLE HEADER) ---------------- */}
+                        {/* ---------------- TAB 4: KONTAK ---------------- */}
                         {activeTab === 'contact' && (
-                            <div className="max-w-2xl mx-auto space-y-6 w-full">
-                                <div className="glass-card p-6 md:p-8 rounded-3xl text-center space-y-3 relative group">
-                                    {isAdminLoggedIn && (
-                                        <button onClick={() => { setContactEditForm({ contactTitle: profile.contactTitle, contactDesc: profile.contactDesc }); setShowContactEditModal(true); }} className="absolute top-4 right-4 z-10 p-2 bg-amber-500 text-white rounded-xl shadow-md hover:bg-amber-600">
-                                            <i data-lucide="edit-3" className="w-3.5 h-3.5"></i>
-                                        </button>
-                                    )}
-                                    <div className="w-14 h-14 rounded-full bg-peach-100 text-peach-600 mx-auto flex items-center justify-center">
-                                        <i data-lucide="mail" className="w-7 h-7"></i>
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
+                                <div className="md:col-span-5 glass-card p-6 rounded-3xl space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <h2 className="font-serif font-bold text-2xl text-[#3D2B27]">{profile.contactTitle}</h2>
+                                        {isAdminLoggedIn && (
+                                            <button onClick={() => { setContactEditForm({ contactTitle: profile.contactTitle, contactDesc: profile.contactDesc }); setShowContactEditModal(true); }} className="p-1.5 bg-amber-500 text-white rounded-lg">
+                                                <i data-lucide="edit-3" className="w-3.5 h-3.5"></i>
+                                            </button>
+                                        )}
                                     </div>
-                                    <h2 className="font-serif font-bold text-3xl text-[#3D2B27]">{profile.contactTitle}</h2>
-                                    <p className="text-xs text-[#8C7A76] max-w-md mx-auto">
-                                        {profile.contactDesc}
-                                    </p>
+                                    <p className="text-xs text-[#8C7A76] leading-relaxed">{profile.contactDesc}</p>
+                                    <div className="space-y-3 pt-3">
+                                        <div className="flex items-center gap-3 text-xs">
+                                            <div className="w-9 h-9 rounded-xl bg-peach-100 text-peach-600 flex items-center justify-center">
+                                                <i data-lucide="mail" className="w-4 h-4"></i>
+                                            </div>
+                                            <span>{profile.email}</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 text-xs">
+                                            <div className="w-9 h-9 rounded-xl bg-peach-100 text-peach-600 flex items-center justify-center">
+                                                <i data-lucide="phone" className="w-4 h-4"></i>
+                                            </div>
+                                            <span>+{profile.whatsapp}</span>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <form onSubmit={handleContactSubmit} className="glass-card p-6 md:p-8 rounded-3xl space-y-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="md:col-span-7 glass-card p-6 rounded-3xl">
+                                    <form onSubmit={handleContactSubmit} className="space-y-3">
                                         <div>
-                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">Nama Anda</label>
-                                            <input type="text" required value={contactForm.name} onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })} placeholder="Nama Lengkap" className="w-full bg-white/80 border border-peach-200 rounded-xl px-3.5 py-2.5 text-xs text-[#3D2B27] focus:outline-none focus:border-peach-500" />
+                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">Nama Lengkap</label>
+                                            <input type="text" required value={contactForm.name} onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })} placeholder="Masukkan nama..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                         </div>
                                         <div>
-                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">Email Anda</label>
-                                            <input type="email" required value={contactForm.email} onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })} placeholder="email@domain.com" className="w-full bg-white/80 border border-peach-200 rounded-xl px-3.5 py-2.5 text-xs text-[#3D2B27] focus:outline-none focus:border-peach-500" />
+                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">Email / Kontak</label>
+                                            <input type="email" required value={contactForm.email} onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })} placeholder="email@domain.com" className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                         </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Subjek</label>
-                                        <input type="text" required value={contactForm.subject} onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })} placeholder="Diskusi Proyek UI/UX" className="w-full bg-white/80 border border-peach-200 rounded-xl px-3.5 py-2.5 text-xs text-[#3D2B27] focus:outline-none focus:border-peach-500" />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Pesan</label>
-                                        <textarea rows="4" required value={contactForm.message} onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })} placeholder="Tuliskan pesan Anda secara mendalam..." className="w-full bg-white/80 border border-peach-200 rounded-xl px-3.5 py-2.5 text-xs text-[#3D2B27] focus:outline-none focus:border-peach-500"></textarea>
-                                    </div>
-                                    <button type="submit" className="w-full py-3 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-peach-500/30 flex items-center justify-center gap-2">
-                                        <i data-lucide="send" className="w-4 h-4"></i> Kirim Pesan Now
-                                    </button>
-                                </form>
+                                        <div>
+                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">Subjek</label>
+                                            <input type="text" required value={contactForm.subject} onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })} placeholder="Penawaran proyek..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">Pesan</label>
+                                            <textarea rows="4" required value={contactForm.message} onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })} placeholder="Tuliskan detail kebutuhan Anda..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
+                                        </div>
+                                        <button type="submit" className="w-full py-3 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                                            Kirim Pesan Sekarang 🚀
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         )}
 
@@ -948,7 +896,7 @@
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                     <button onClick={() => { setProfileForm(profile); setShowProfileModal(true); }} className="glass-card p-5 rounded-3xl text-left hover:border-peach-500">
                                         <div className="w-10 h-10 rounded-xl bg-peach-100 text-peach-600 flex items-center justify-center mb-2">
                                             <i data-lucide="user-check" className="w-5 h-5"></i>
@@ -996,67 +944,56 @@
                                         <h4 className="font-bold text-sm text-[#3D2B27]">6. Edit Spotlight Banner</h4>
                                         <p className="text-xs text-[#8C7A76] mt-1">Banner konversi utama Bio Hub.</p>
                                     </button>
-                                </div>
 
-                                {/* Inbox Messages */}
-                                <div className="glass-card p-6 rounded-3xl space-y-4">
-                                    <h3 className="font-bold text-base text-[#3D2B27] flex items-center gap-2">
-                                        <i data-lucide="inbox" className="w-4 h-4 text-peach-500"></i> Pesan Masuk ({messages.length})
-                                    </h3>
-                                    {messages.length === 0 ? (
-                                        <p className="text-xs text-[#8C7A76]">Belum ada pesan baru masuk.</p>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            {messages.map((m) => (
-                                                <div key={m.id} className="p-4 bg-white/90 border border-peach-200 rounded-2xl text-xs space-y-1">
-                                                    <div className="flex justify-between font-bold text-[#3D2B27]">
-                                                        <span>{m.name} ({m.email})</span>
-                                                        <span className="text-[#8C7A76] font-normal">{m.date}</span>
-                                                    </div>
-                                                    <div className="text-peach-700 font-semibold">{m.subject}</div>
-                                                    <p className="text-[#8C7A76]">{m.message}</p>
-                                                </div>
-                                            ))}
+                                    <button onClick={() => { setCredsForm({ currentPassword: '', newUsername: '', newPassword: '' }); setShowChangeCredsModal(true); }} className="glass-card p-5 rounded-3xl text-left hover:border-peach-500 border border-peach-400 bg-peach-50/50">
+                                        <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center mb-2 shadow-md">
+                                            <i data-lucide="key-round" className="w-5 h-5"></i>
                                         </div>
-                                    )}
+                                        <h4 className="font-bold text-sm text-[#3D2B27]">7. Ubah Password & User Admin</h4>
+                                        <p className="text-xs text-[#8C7A76] mt-1">Amankan akun admin di Google Sheets.</p>
+                                    </button>
                                 </div>
                             </div>
                         )}
 
                     </main>
 
-                    {/* MODAL 1: EDIT PROFILE HEADER */}
+                    {/* ALL EDIT MODALS WITH CANCEL BUTTONS & BACKDROP DISMISS */}
+                    
+                    {/* MODAL EDIT PROFIL */}
                     {showProfileModal && (
                         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowProfileModal(false)}>
-                            <div className="glass-card p-6 rounded-3xl max-w-lg w-full bg-white space-y-4 max-h-[90vh] overflow-y-auto cursor-default" onClick={(e) => e.stopPropagation()}>
+                            <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl w-[94vw] sm:w-full max-w-lg bg-white space-y-4 max-h-[90vh] overflow-y-auto cursor-default" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex justify-between items-center">
-                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Edit Profil & Header Utama</h3>
+                                    <h3 className="font-serif font-bold text-lg sm:text-xl text-[#3D2B27]">Edit Profil Utama</h3>
                                     <button onClick={() => setShowProfileModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
                                 </div>
                                 <form onSubmit={handleSaveProfile} className="space-y-3">
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Greeting Main Title</label>
-                                        <input type="text" required value={profileForm.greeting} onChange={(e) => setProfileForm({ ...profileForm, greeting: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
-                                    </div>
-                                    <div>
                                         <label className="text-xs font-bold text-[#3D2B27] block mb-1">Nama Lengkap</label>
-                                        <input type="text" required value={profileForm.name} onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        <input type="text" value={profileForm.name} onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Role / Job Title</label>
-                                        <input type="text" required value={profileForm.role} onChange={(e) => setProfileForm({ ...profileForm, role: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Role / Jabatan</label>
+                                        <input type="text" value={profileForm.role} onChange={(e) => setProfileForm({ ...profileForm, role: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Lokasi & Suhu</label>
-                                        <input type="text" value={profileForm.location} onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Greeting Headline</label>
+                                        <input type="text" value={profileForm.greeting} onChange={(e) => setProfileForm({ ...profileForm, greeting: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Keterangan Cuaca</label>
-                                        <input type="text" value={profileForm.weather} onChange={(e) => setProfileForm({ ...profileForm, weather: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">URL Avatar Foto Profil</label>
+                                        <input type="text" value={profileForm.avatar} onChange={(e) => setProfileForm({ ...profileForm, avatar: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">URL Avatar / Foto Profil</label>
-                                        <input type="url" value={profileForm.avatar} onChange={(e) => setProfileForm({ ...profileForm, avatar: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">Lokasi & Suhu</label>
+                                            <input type="text" value={profileForm.location} onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">Cuaca</label>
+                                            <input type="text" value={profileForm.weather} onChange={(e) => setProfileForm({ ...profileForm, weather: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        </div>
                                     </div>
                                     <div className="flex gap-2 pt-2">
                                         <button type="button" onClick={() => setShowProfileModal(false)} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
@@ -1071,30 +1008,30 @@
                         </div>
                     )}
 
-                    {/* MODAL 2: EDIT STATUS & AVAILABILITY */}
+                    {/* MODAL EDIT STATUS PROYEK */}
                     {showStatusModal && (
                         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowStatusModal(false)}>
-                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4 cursor-default" onClick={(e) => e.stopPropagation()}>
+                            <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl w-[94vw] sm:w-full max-w-md bg-white space-y-4 cursor-default" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex justify-between items-center">
-                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Edit Status Proyek & Hire</h3>
+                                    <h3 className="font-serif font-bold text-lg sm:text-xl text-[#3D2B27]">Edit Status Proyek</h3>
                                     <button onClick={() => setShowStatusModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
                                 </div>
                                 <form onSubmit={handleSaveStatus} className="space-y-3">
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Judul Status Utama</label>
-                                        <input type="text" required value={statusForm.statusTitle} onChange={(e) => setStatusForm({ ...statusForm, statusTitle: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Judul Status (misal: Available)</label>
+                                        <input type="text" value={statusForm.statusTitle} onChange={(e) => setStatusForm({ ...statusForm, statusTitle: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Badge Teks (misal: For Hire / Busy)</label>
-                                        <input type="text" required value={statusForm.statusBadge} onChange={(e) => setStatusForm({ ...statusForm, statusBadge: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Badge Teks (misal: For Hire)</label>
+                                        <input type="text" value={statusForm.statusBadge} onChange={(e) => setStatusForm({ ...statusForm, statusBadge: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
                                     <div>
                                         <label className="text-xs font-bold text-[#3D2B27] block mb-1">Deskripsi Ketersediaan</label>
                                         <textarea rows="3" value={statusForm.statusDesc} onChange={(e) => setStatusForm({ ...statusForm, statusDesc: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
                                     </div>
                                     <div className="flex items-center gap-2 pt-1">
-                                        <input type="checkbox" id="availableForHire" checked={statusForm.availableForHire} onChange={(e) => setStatusForm({ ...statusForm, availableForHire: e.target.checked })} className="rounded accent-peach-500" />
-                                        <label htmlFor="availableForHire" className="text-xs font-semibold text-[#3D2B27]">Aktifkan Mode Siap Dihubungi (Hijau)</label>
+                                        <input type="checkbox" id="hireCheck" checked={statusForm.availableForHire} onChange={(e) => setStatusForm({ ...statusForm, availableForHire: e.target.checked })} />
+                                        <label htmlFor="hireCheck" className="text-xs font-semibold text-[#3D2B27]">Tampilkan Badge Siap Bekerja (Hijau)</label>
                                     </div>
                                     <div className="flex gap-2 pt-2">
                                         <button type="button" onClick={() => setShowStatusModal(false)} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
@@ -1109,26 +1046,59 @@
                         </div>
                     )}
 
-                    {/* MODAL 3: EDIT QUOTE */}
+                    {/* MODAL EDIT SKILLS */}
+                    {showSkillsModal && (
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowSkillsModal(false)}>
+                            <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl w-[94vw] sm:w-full max-w-md bg-white space-y-4 max-h-[90vh] overflow-y-auto cursor-default" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-serif font-bold text-lg sm:text-xl text-[#3D2B27]">Kelola Skill Focus</h3>
+                                    <button onClick={() => setShowSkillsModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
+                                </div>
+                                <form onSubmit={handleSaveSkills} className="space-y-3">
+                                    {skillsListForm.map((s, idx) => (
+                                        <div key={s.id} className="flex items-center gap-2 border-b border-peach-100 pb-2">
+                                            <input type="text" value={s.name} onChange={(e) => { const updated = [...skillsListForm]; updated[idx].name = e.target.value; setSkillsListForm(updated); }} className="flex-1 border border-peach-200 rounded-xl px-3 py-1.5 text-xs" placeholder="Nama Skill" />
+                                            <input type="number" min="0" max="100" value={s.percentage} onChange={(e) => { const updated = [...skillsListForm]; updated[idx].percentage = parseInt(e.target.value) || 0; setSkillsListForm(updated); }} className="w-16 border border-peach-200 rounded-xl px-2 py-1.5 text-xs text-center" />
+                                            <span className="text-xs font-bold">%</span>
+                                            <button type="button" onClick={() => handleRemoveSkillItem(s.id)} className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg"><i data-lucide="trash-2" className="w-4 h-4"></i></button>
+                                        </div>
+                                    ))}
+                                    <button type="button" onClick={handleAddSkillItem} className="w-full py-2 bg-peach-100 text-peach-700 font-bold text-xs rounded-xl hover:bg-peach-200 flex items-center justify-center gap-1">
+                                        <i data-lucide="plus" className="w-4 h-4"></i> Tambah Item Skill
+                                    </button>
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="button" onClick={() => setShowSkillsModal(false)} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
+                                            Batal
+                                        </button>
+                                        <button type="submit" className="w-1/2 py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                                            Simpan Semua Skill
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL EDIT QUOTE */}
                     {showQuoteModal && (
                         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowQuoteModal(false)}>
-                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4 cursor-default" onClick={(e) => e.stopPropagation()}>
+                            <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl w-[94vw] sm:w-full max-w-md bg-white space-y-4 cursor-default" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex justify-between items-center">
-                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Edit Quote Inspiratif</h3>
+                                    <h3 className="font-serif font-bold text-lg sm:text-xl text-[#3D2B27]">Edit Quote Reflection</h3>
                                     <button onClick={() => setShowQuoteModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
                                 </div>
                                 <form onSubmit={handleSaveQuote} className="space-y-3">
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Quote Utama (Mandarin/Bahasa)</label>
-                                        <textarea rows="2" required value={quoteForm.quote} onChange={(e) => setQuoteForm({ ...quoteForm, quote: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Quote Utama</label>
+                                        <textarea rows="2" value={quoteForm.quote} onChange={(e) => setQuoteForm({ ...quoteForm, quote: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Terjemahan / Sub-quote</label>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Terjemahan / Sub-Quote</label>
                                         <textarea rows="2" value={quoteForm.quoteSub} onChange={(e) => setQuoteForm({ ...quoteForm, quoteSub: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Penulis / Tokoh Quote</label>
-                                        <input type="text" required value={quoteForm.author} onChange={(e) => setQuoteForm({ ...quoteForm, author: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Penulis / Author</label>
+                                        <input type="text" value={quoteForm.author} onChange={(e) => setQuoteForm({ ...quoteForm, author: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
                                     <div className="flex gap-2 pt-2">
                                         <button type="button" onClick={() => setShowQuoteModal(false)} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
@@ -1143,61 +1113,26 @@
                         </div>
                     )}
 
-                    {/* MODAL 4: EDIT SKILLS */}
-                    {showSkillsModal && (
-                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowSkillsModal(false)}>
-                            <div className="glass-card p-6 rounded-3xl max-w-lg w-full bg-white space-y-4 max-h-[85vh] overflow-y-auto cursor-default" onClick={(e) => e.stopPropagation()}>
-                                <div className="flex justify-between items-center">
-                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Kelola Daftar Keahlian (Skills)</h3>
-                                    <button onClick={() => setShowSkillsModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
-                                </div>
-                                <form onSubmit={handleSaveSkills} className="space-y-3">
-                                    {skillsListForm.map((s, idx) => (
-                                        <div key={s.id || idx} className="p-3 bg-peach-50 rounded-2xl border border-peach-200 flex items-center gap-2">
-                                            <input type="text" required value={s.name} onChange={(e) => { const updated = [...skillsListForm]; updated[idx].name = e.target.value; setSkillsListForm(updated); }} className="flex-1 border border-peach-200 rounded-xl px-2.5 py-1.5 text-xs bg-white" placeholder="Nama Keahlian" />
-                                            <input type="number" min="0" max="100" required value={s.percentage} onChange={(e) => { const updated = [...skillsListForm]; updated[idx].percentage = e.target.value; setSkillsListForm(updated); }} className="w-20 border border-peach-200 rounded-xl px-2.5 py-1.5 text-xs bg-white text-center" />
-                                            <span className="text-xs text-[#8C7A76]">%</span>
-                                            <button type="button" onClick={() => handleRemoveSkillItem(s.id)} className="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg">
-                                                <i data-lucide="trash-2" className="w-4 h-4"></i>
-                                            </button>
-                                        </div>
-                                    ))}
-                                    <button type="button" onClick={handleAddSkillItem} className="w-full py-2 bg-peach-100 text-peach-700 font-bold text-xs rounded-xl border border-dashed border-peach-300">
-                                        + Tambah Baris Skill Baru
-                                    </button>
-                                    <div className="flex gap-2 pt-2">
-                                        <button type="button" onClick={() => setShowSkillsModal(false)} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
-                                            Batal
-                                        </button>
-                                        <button type="submit" className="w-1/2 py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
-                                            Simpan Skills
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* MODAL 5: EDIT AUDIO LOG */}
+                    {/* MODAL EDIT AUDIO PODCAST LOG */}
                     {showAudioModal && (
                         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowAudioModal(false)}>
-                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4 cursor-default" onClick={(e) => e.stopPropagation()}>
+                            <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl w-[94vw] sm:w-full max-w-md bg-white space-y-4 cursor-default" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex justify-between items-center">
-                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Edit Audio Log / Podcast</h3>
+                                    <h3 className="font-serif font-bold text-lg sm:text-xl text-[#3D2B27]">Edit Audio Podcast Log</h3>
                                     <button onClick={() => setShowAudioModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
                                 </div>
                                 <form onSubmit={handleSaveAudio} className="space-y-3">
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Label Ikon Cover (Max 6 Huruf)</label>
-                                        <input type="text" maxLength="6" required value={audioForm.audioCoverTag} onChange={(e) => setAudioForm({ ...audioForm, audioCoverTag: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Judul Podcast</label>
+                                        <input type="text" value={audioForm.audioTitle} onChange={(e) => setAudioForm({ ...audioForm, audioTitle: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Judul Podcast / Track</label>
-                                        <input type="text" required value={audioForm.audioTitle} onChange={(e) => setAudioForm({ ...audioForm, audioTitle: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Episode & Keterangan</label>
+                                        <input type="text" value={audioForm.audioEp} onChange={(e) => setAudioForm({ ...audioForm, audioEp: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Detail Episode / Keterangan</label>
-                                        <input type="text" required value={audioForm.audioEp} onChange={(e) => setAudioForm({ ...audioForm, audioEp: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Tag Cover (misal: Design)</label>
+                                        <input type="text" value={audioForm.audioCoverTag} onChange={(e) => setAudioForm({ ...audioForm, audioCoverTag: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
                                     <div className="flex gap-2 pt-2">
                                         <button type="button" onClick={() => setShowAudioModal(false)} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
@@ -1212,25 +1147,25 @@
                         </div>
                     )}
 
-                    {/* MODAL 6: EDIT SPOTLIGHT BANNER */}
+                    {/* MODAL EDIT SPOTLIGHT BANNER */}
                     {showSpotlightModal && (
                         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowSpotlightModal(false)}>
-                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4 cursor-default" onClick={(e) => e.stopPropagation()}>
+                            <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl w-[94vw] sm:w-full max-w-md bg-white space-y-4 cursor-default" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex justify-between items-center">
-                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Edit Spotlight Banner</h3>
+                                    <h3 className="font-serif font-bold text-lg sm:text-xl text-[#3D2B27]">Edit Spotlight Banner</h3>
                                     <button onClick={() => setShowSpotlightModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
                                 </div>
                                 <form onSubmit={handleSaveSpotlight} className="space-y-3">
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Teks Badge Spotlight</label>
-                                        <input type="text" required value={spotlightForm.spotlightBadge} onChange={(e) => setSpotlightForm({ ...spotlightForm, spotlightBadge: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Badge Teks Banner</label>
+                                        <input type="text" value={spotlightForm.spotlightBadge} onChange={(e) => setSpotlightForm({ ...spotlightForm, spotlightBadge: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
                                     <div>
                                         <label className="text-xs font-bold text-[#3D2B27] block mb-1">Judul Banner Utama</label>
-                                        <input type="text" required value={spotlightForm.spotlightTitle} onChange={(e) => setSpotlightForm({ ...spotlightForm, spotlightTitle: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        <textarea rows="2" value={spotlightForm.spotlightTitle} onChange={(e) => setSpotlightForm({ ...spotlightForm, spotlightTitle: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Sub-deskripsi Banner</label>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Sub-Deskripsi Banner</label>
                                         <textarea rows="2" value={spotlightForm.spotlightDesc} onChange={(e) => setSpotlightForm({ ...spotlightForm, spotlightDesc: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
                                     </div>
                                     <div className="flex gap-2 pt-2">
@@ -1238,7 +1173,7 @@
                                             Batal
                                         </button>
                                         <button type="submit" className="w-1/2 py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
-                                            Simpan Spotlight
+                                            Simpan Banner
                                         </button>
                                     </div>
                                 </form>
@@ -1246,22 +1181,134 @@
                         </div>
                     )}
 
-                    {/* MODAL 7: EDIT CONTACT TAB TEXTS */}
+                    {/* MODAL EDIT FOAM LINK */}
+                    {showLinkModal && (
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowLinkModal(false)}>
+                            <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl w-[94vw] sm:w-full max-w-md bg-white space-y-4 max-h-[90vh] overflow-y-auto cursor-default" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-serif font-bold text-lg sm:text-xl text-[#3D2B27]">{editingLink ? "Edit Foam Link" : "Tambah Foam Link Baru"}</h3>
+                                    <button onClick={() => setShowLinkModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
+                                </div>
+                                <form onSubmit={handleSaveLink} className="space-y-3">
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Judul Tautan (misal: Instagram Profile)</label>
+                                        <input type="text" required value={linkForm.title} onChange={(e) => setLinkForm({ ...linkForm, title: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Kategori</label>
+                                        <select value={linkForm.category} onChange={(e) => setLinkForm({ ...linkForm, category: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs">
+                                            <option value="Social Media">Social Media</option>
+                                            <option value="Design Showcase">Design Showcase</option>
+                                            <option value="Code">Code</option>
+                                            <option value="Services">Services</option>
+                                            <option value="Lifestyle">Lifestyle</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">URL Tautan Target</label>
+                                        <input type="text" required value={linkForm.url} onChange={(e) => setLinkForm({ ...linkForm, url: e.target.value })} placeholder="instagram.com/username atau https://..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Icon (Lucide Name: instagram, github, figma, calendar, music, dll)</label>
+                                        <input type="text" value={linkForm.icon} onChange={(e) => setLinkForm({ ...linkForm, icon: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Deskripsi Ringkas</label>
+                                        <textarea rows="2" value={linkForm.description} onChange={(e) => setLinkForm({ ...linkForm, description: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
+                                    </div>
+                                    <div className="flex items-center gap-2 pt-1">
+                                        <input type="checkbox" id="featuredCheck" checked={linkForm.isFeatured} onChange={(e) => setLinkForm({ ...linkForm, isFeatured: e.target.checked })} />
+                                        <label htmlFor="featuredCheck" className="text-xs font-semibold text-[#3D2B27]">Tampilkan Badge POPULAR</label>
+                                    </div>
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="button" onClick={() => setShowLinkModal(false)} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
+                                            Batal
+                                        </button>
+                                        <button type="submit" className="w-1/2 py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                                            Simpan Tautan
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL EDIT WORK */}
+                    {showWorkModal && (
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowWorkModal(false)}>
+                            <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl w-[94vw] sm:w-full max-w-lg bg-white space-y-4 max-h-[90vh] overflow-y-auto cursor-default" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-serif font-bold text-lg sm:text-xl text-[#3D2B27]">{editingWork ? "Edit Hasil Karya" : "Tambah Hasil Karya"}</h3>
+                                    <button onClick={() => setShowWorkModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
+                                </div>
+                                <form onSubmit={handleSaveWork} className="space-y-3">
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Tipe Karya</label>
+                                        <select value={workForm.workType} onChange={(e) => setWorkForm({ ...workForm, workType: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs">
+                                            <option value="image">🖼️ Visual & Gambar (Design/Mockup)</option>
+                                            <option value="text">📝 Artikel & Teks (Essay/Case Study)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Judul Karya</label>
+                                        <input type="text" required value={workForm.title} onChange={(e) => setWorkForm({ ...workForm, title: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Sub-judul / Tagline</label>
+                                        <input type="text" value={workForm.subtitle} onChange={(e) => setWorkForm({ ...workForm, subtitle: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">URL Gambar Header</label>
+                                        <input type="text" value={workForm.image} onChange={(e) => setWorkForm({ ...workForm, image: e.target.value })} placeholder="https://..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Ringkasan Singkat (Card Description)</label>
+                                        <textarea rows="2" value={workForm.description} onChange={(e) => setWorkForm({ ...workForm, description: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
+                                    </div>
+                                    {workForm.workType === 'text' ? (
+                                        <div>
+                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">Naskah Artikel Utuh</label>
+                                            <textarea rows="5" value={workForm.fullContent} onChange={(e) => setWorkForm({ ...workForm, fullContent: e.target.value })} placeholder="Tuliskan isi artikel lengkap di sini..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">URL Demo / Behance Target</label>
+                                            <input type="text" value={workForm.demoUrl} onChange={(e) => setWorkForm({ ...workForm, demoUrl: e.target.value })} placeholder="https://..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        </div>
+                                    )}
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Tags (Pisahkan dengan koma: React, Figma, UI)</label>
+                                        <input type="text" value={workForm.tags} onChange={(e) => setWorkForm({ ...workForm, tags: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="button" onClick={() => setShowWorkModal(false)} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
+                                            Batal
+                                        </button>
+                                        <button type="submit" className="w-1/2 py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                                            Simpan Karya
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL EDIT KONTAK */}
                     {showContactEditModal && (
                         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowContactEditModal(false)}>
-                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4 cursor-default" onClick={(e) => e.stopPropagation()}>
+                            <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl w-[94vw] sm:w-full max-w-md bg-white space-y-4 cursor-default" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex justify-between items-center">
-                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">Edit Teks Halaman Kontak</h3>
+                                    <h3 className="font-serif font-bold text-lg sm:text-xl text-[#3D2B27]">Edit Teks Kontak</h3>
                                     <button onClick={() => setShowContactEditModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
                                 </div>
                                 <form onSubmit={handleSaveContactEdit} className="space-y-3">
                                     <div>
                                         <label className="text-xs font-bold text-[#3D2B27] block mb-1">Judul Kontak</label>
-                                        <input type="text" required value={contactEditForm.contactTitle} onChange={(e) => setContactEditForm({ ...contactEditForm, contactTitle: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        <input type="text" value={contactEditForm.contactTitle} onChange={(e) => setContactEditForm({ ...contactEditForm, contactTitle: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Deskripsi Halaman Kontak</label>
-                                        <textarea rows="3" required value={contactEditForm.contactDesc} onChange={(e) => setContactEditForm({ ...contactEditForm, contactDesc: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Deskripsi Kontak</label>
+                                        <textarea rows="3" value={contactEditForm.contactDesc} onChange={(e) => setContactEditForm({ ...contactEditForm, contactDesc: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
                                     </div>
                                     <div className="flex gap-2 pt-2">
                                         <button type="button" onClick={() => setShowContactEditModal(false)} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
@@ -1276,143 +1323,64 @@
                         </div>
                     )}
 
-                    {/* MODAL FOAM LINK (ADD/EDIT) */}
-                    {showLinkModal && (
-                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => { setShowLinkModal(false); setEditingLink(null); }}>
-                            <div className="glass-card p-6 rounded-3xl max-w-md w-full bg-white space-y-4 cursor-default" onClick={(e) => e.stopPropagation()}>
-                                <div className="flex justify-between items-center">
-                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">{editingLink ? 'Edit Foam Link' : 'Tambah Foam Link Baru'}</h3>
-                                    <button onClick={() => { setShowLinkModal(false); setEditingLink(null); }}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
-                                </div>
-                                <form onSubmit={handleSaveLink} className="space-y-3">
-                                    <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Judul Tautan</label>
-                                        <input type="text" required value={linkForm.title} onChange={(e) => setLinkForm({ ...linkForm, title: e.target.value })} placeholder="misal: Portfolio Behance" className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Kategori</label>
-                                        <select value={linkForm.category} onChange={(e) => setLinkForm({ ...linkForm, category: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs bg-white">
-                                            <option value="Social Media">Social Media</option>
-                                            <option value="Design Showcase">Design Showcase</option>
-                                            <option value="Code">Code</option>
-                                            <option value="Services">Services</option>
-                                            <option value="Lifestyle">Lifestyle</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Ikon Lucide (misal: instagram, github, figma, link, mail, calendar)</label>
-                                        <input type="text" value={linkForm.icon} onChange={(e) => setLinkForm({ ...linkForm, icon: e.target.value })} placeholder="instagram" className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">URL Target</label>
-                                        <input type="text" required value={linkForm.url} onChange={(e) => setLinkForm({ ...linkForm, url: e.target.value })} placeholder="instagram.com/username atau https://..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Deskripsi Ringkas</label>
-                                        <input type="text" value={linkForm.description} onChange={(e) => setLinkForm({ ...linkForm, description: e.target.value })} placeholder="Keterangan singkat tautan..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
-                                    </div>
-                                    <div className="flex items-center gap-2 pt-1">
-                                        <input type="checkbox" id="isFeatured" checked={linkForm.isFeatured} onChange={(e) => setLinkForm({ ...linkForm, isFeatured: e.target.checked })} className="rounded accent-peach-500" />
-                                        <label htmlFor="isFeatured" className="text-xs font-semibold text-[#3D2B27]">Tandai Sebagai Tautan Unggulan (Featured Badge)</label>
-                                    </div>
-                                    <div className="flex gap-2 pt-2">
-                                        <button type="button" onClick={() => { setShowLinkModal(false); setEditingLink(null); }} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
-                                            Batal
-                                        </button>
-                                        <button type="submit" className="w-1/2 py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
-                                            Simpan Foam Link
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* MODAL KARYA (ADD/EDIT) */}
-                    {showWorkModal && (
-                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => { setShowWorkModal(false); setEditingWork(null); }}>
-                            <div className="glass-card p-6 rounded-3xl max-w-lg w-full bg-white space-y-4 max-h-[90vh] overflow-y-auto cursor-default" onClick={(e) => e.stopPropagation()}>
-                                <div className="flex justify-between items-center">
-                                    <h3 className="font-serif font-bold text-xl text-[#3D2B27]">{editingWork ? 'Edit Karya' : 'Tambah Karya Baru'}</h3>
-                                    <button onClick={() => { setShowWorkModal(false); setEditingWork(null); }}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
-                                </div>
-                                <form onSubmit={handleSaveWork} className="space-y-3">
-                                    <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Tipe Karya</label>
-                                        <select value={workForm.workType} onChange={(e) => setWorkForm({ ...workForm, workType: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs bg-white font-semibold">
-                                            <option value="image">🖼️ Visual / Gambar Showcase</option>
-                                            <option value="text">📝 Artikel / Naskah Teks Utuh</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Judul Karya / Artikel</label>
-                                        <input type="text" required value={workForm.title} onChange={(e) => setWorkForm({ ...workForm, title: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Sub-judul / Tagline</label>
-                                        <input type="text" value={workForm.subtitle} onChange={(e) => setWorkForm({ ...workForm, subtitle: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
-                                    </div>
-                                    {workForm.workType === 'image' ? (
-                                        <div>
-                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">URL Gambar Preview</label>
-                                            <input type="url" required value={workForm.image} onChange={(e) => setWorkForm({ ...workForm, image: e.target.value })} placeholder="https://..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            <label className="text-xs font-bold text-[#3D2B27] block mb-1">Naskah Artikel Utuh (Teks Lengkap)</label>
-                                            <textarea rows="6" required value={workForm.fullContent} onChange={(e) => setWorkForm({ ...workForm, fullContent: e.target.value })} placeholder="Tuliskan isi artikel atau esai lengkap Anda di sini..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs leading-relaxed"></textarea>
-                                        </div>
-                                    )}
-                                    <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Deskripsi Singkat / Ringkasan</label>
-                                        <textarea rows="2" required value={workForm.description} onChange={(e) => setWorkForm({ ...workForm, description: e.target.value })} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs"></textarea>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Tags (pisahkan dengan koma)</label>
-                                        <input type="text" value={workForm.tags} onChange={(e) => setWorkForm({ ...workForm, tags: e.target.value })} placeholder="React, UI Design, Article" className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
-                                    </div>
-                                    <div className="flex gap-2 pt-2">
-                                        <button type="button" onClick={() => { setShowWorkModal(false); setEditingWork(null); }} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
-                                            Batal
-                                        </button>
-                                        <button type="submit" className="w-1/2 py-2.5 bg-peach-500 hover:bg-peach-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
-                                            Simpan Karya
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* MODAL READER NASKAH ARTIKEL */}
+                    {/* MODAL BACA ARTIKEL TEKS UTUH */}
                     {activeArticleModal && (
                         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setActiveArticleModal(null)}>
-                            <div className="glass-card p-6 md:p-8 rounded-3xl max-w-2xl w-full bg-white space-y-4 max-h-[85vh] overflow-y-auto cursor-default" onClick={(e) => e.stopPropagation()}>
-                                <div className="flex justify-between items-start border-b border-peach-200 pb-3">
+                            <div className="glass-card p-6 rounded-3xl w-[94vw] sm:w-full max-w-2xl bg-white space-y-4 max-h-[85vh] overflow-y-auto cursor-default" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex justify-between items-start">
                                     <div>
-                                        <span className="text-[10px] bg-peach-100 text-peach-700 font-bold px-2.5 py-0.5 rounded-full uppercase">
+                                        <span className="text-[10px] font-bold bg-peach-100 text-peach-700 px-3 py-1 rounded-full uppercase">
                                             {activeArticleModal.category}
                                         </span>
-                                        <h2 className="font-serif font-bold text-2xl text-[#3D2B27] mt-1">{activeArticleModal.title}</h2>
-                                        <p className="text-xs text-peach-600 font-semibold">{activeArticleModal.subtitle}</p>
+                                        <h2 className="font-serif font-bold text-2xl text-[#3D2B27] mt-2">{activeArticleModal.title}</h2>
+                                        <p className="text-xs text-[#8C7A76] italic">{activeArticleModal.subtitle}</p>
                                     </div>
-                                    <button onClick={() => setActiveArticleModal(null)} className="p-1 hover:bg-peach-100 rounded-full">
-                                        <i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i>
+                                    <button onClick={() => setActiveArticleModal(null)} className="p-2 text-[#8C7A76] hover:bg-peach-100 rounded-full">
+                                        <i data-lucide="x" className="w-5 h-5"></i>
                                     </button>
                                 </div>
-                                <div className="text-xs text-[#3D2B27] leading-relaxed whitespace-pre-line py-2">
+                                <div className="border-t border-peach-100 pt-4 text-xs sm:text-sm text-[#3D2B27] leading-relaxed whitespace-pre-line space-y-3">
                                     {activeArticleModal.fullContent || activeArticleModal.description}
                                 </div>
-                                <div className="pt-3 border-t border-peach-200 flex justify-between items-center text-xs">
-                                    <div className="flex gap-1">
-                                        {activeArticleModal.tags.map((t, i) => (
-                                            <span key={i} className="bg-peach-100 text-peach-700 font-medium px-2 py-0.5 rounded-md">#{t}</span>
-                                        ))}
-                                    </div>
-                                    <button onClick={() => setActiveArticleModal(null)} className="px-4 py-2 bg-peach-500 text-white font-bold rounded-xl">
-                                        Tutup Pembaca
+                                <div className="pt-4 border-t border-peach-100 flex justify-end">
+                                    <button onClick={() => setActiveArticleModal(null)} className="px-5 py-2 bg-peach-500 text-white font-bold text-xs rounded-xl hover:bg-peach-600">
+                                        Tutup Artikel
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL EDIT CREDENTIALS ADMIN */}
+                    {showChangeCredsModal && (
+                        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowChangeCredsModal(false)}>
+                            <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl w-[94vw] sm:w-full max-w-md bg-white space-y-4 cursor-default" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-serif font-bold text-lg sm:text-xl text-[#3D2B27]">Ubah Username & Password Admin</h3>
+                                    <button onClick={() => setShowChangeCredsModal(false)}><i data-lucide="x" className="w-5 h-5 text-[#8C7A76]"></i></button>
+                                </div>
+                                <form onSubmit={handleChangeCredsSubmit} className="space-y-3">
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Password Saat Ini (Verifikasi)</label>
+                                        <input type="password" required value={credsForm.currentPassword} onChange={(e) => setCredsForm({ ...credsForm, currentPassword: e.target.value })} placeholder="Password sekarang..." className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div className="pt-2 border-t border-peach-100">
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Username Baru (Kosongkan jika tak diubah)</label>
+                                        <input type="text" value={credsForm.newUsername} onChange={(e) => setCredsForm({ ...credsForm, newUsername: e.target.value })} placeholder={adminCreds.username} className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-[#3D2B27] block mb-1">Password Baru (Kosongkan jika tak diubah)</label>
+                                        <input type="password" value={credsForm.newPassword} onChange={(e) => setCredsForm({ ...credsForm, newPassword: e.target.value })} placeholder="Minimal 6 karakter" className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                    </div>
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="button" onClick={() => setShowChangeCredsModal(false)} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
+                                            Batal
+                                        </button>
+                                        <button type="submit" className="w-1/2 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                                            Simpan Kredensial Baru
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     )}
@@ -1420,22 +1388,22 @@
                     {/* MODAL LOGIN ADMIN */}
                     {showLoginModal && (
                         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowLoginModal(false)}>
-                            <div className="glass-card p-6 rounded-3xl max-w-sm w-full bg-white space-y-4 relative cursor-default" onClick={(e) => e.stopPropagation()}>
+                            <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl w-[94vw] sm:w-full max-w-sm bg-white space-y-4 relative cursor-default" onClick={(e) => e.stopPropagation()}>
                                 <button onClick={() => setShowLoginModal(false)} className="absolute top-4 right-4 text-[#8C7A76]">
                                     <i data-lucide="x" className="w-5 h-5"></i>
                                 </button>
                                 <div className="text-center space-y-1">
-                                    <h3 className="font-serif font-bold text-2xl text-[#3D2B27]">Admin Login</h3>
-                                    <p className="text-xs text-[#8C7A76]">Kredensial default: admin / edudigital</p>
+                                    <h3 className="font-serif font-bold text-xl sm:text-2xl text-[#3D2B27]">Admin Login</h3>
+                                    <p className="text-xs text-[#8C7A76]">Masukan kredensial admin Anda</p>
                                 </div>
                                 <form onSubmit={handleLoginSubmit} className="space-y-3 pt-2">
                                     <div>
                                         <label className="text-xs font-bold text-[#3D2B27] block mb-1">Username</label>
-                                        <input type="text" required value={loginForm.username} onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })} placeholder="admin" className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        <input type="text" required value={loginForm.username} onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })} placeholder="Masukkan username" className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
                                     <div>
                                         <label className="text-xs font-bold text-[#3D2B27] block mb-1">Password</label>
-                                        <input type="password" required value={loginForm.password} onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })} placeholder="edudigital" className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
+                                        <input type="password" required value={loginForm.password} onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })} placeholder="Masukkan password" className="w-full border border-peach-200 rounded-xl px-3 py-2 text-xs" />
                                     </div>
                                     <div className="flex gap-2 pt-2">
                                         <button type="button" onClick={() => setShowLoginModal(false)} className="w-1/2 py-2.5 bg-stone-200 hover:bg-stone-300 text-[#3D2B27] font-bold text-xs rounded-xl transition-colors">
